@@ -1,16 +1,66 @@
-# hot_vault
+# Hot Vault
 
-A new Flutter project.
+A Flutter application built with feature-first clean architecture.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+```bash
+flutter pub get
+flutter run
+```
 
-A few resources to get you started if this is your first Flutter project:
+## Architecture
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+This project follows a **feature-first** architecture with clean code principles.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```
+lib/
+├── main.dart                 # Entry point
+├── app/                      # App configuration
+│   ├── app.dart              # Root widget
+│   └── theme/                # Theming
+├── core/                     # Core utilities
+│   ├── constants/            # App constants
+│   ├── errors/               # Error handling
+│   ├── extensions/           # Dart extensions
+│   ├── network/              # Network configuration
+│   └── utils/                # Utilities
+├── features/                 # Feature modules
+│   └── [feature]/
+│       ├── data/             # Data layer
+│       │   ├── datasources/  # Remote/local data sources
+│       │   ├── models/       # Data models
+│       │   └── repositories/ # Repository implementations
+│       ├── domain/           # Business logic
+│       │   ├── entities/     # Business entities
+│       │   ├── repositories/ # Repository contracts
+│       │   └── usecases/     # Use cases
+│       └── presentation/     # UI layer
+│           ├── screens/      # Screen widgets
+│           └── widgets/      # Feature widgets
+└── shared/                   # Shared components
+    ├── widgets/              # Reusable widgets
+    └── styles/               # Shared styles
+```
+
+## Adding a New Feature
+
+1. Create a new folder under `lib/features/[feature_name]/`
+2. Add the three layers: `data/`, `domain/`, `presentation/`
+3. Follow the existing structure for consistency
+
+## Testing
+
+Tests mirror the source structure:
+
+```
+test/
+├── core/           # Core tests
+├── features/       # Feature tests
+└── widget_test.dart
+```
+
+Run tests:
+```bash
+flutter test
+```
