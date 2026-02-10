@@ -25,4 +25,17 @@ abstract final class AppSpacing {
   static const EdgeInsets paddingMd = EdgeInsets.all(md);
   static const EdgeInsets paddingLg = EdgeInsets.all(lg);
   static const EdgeInsets paddingXl = EdgeInsets.all(xl);
+
+  // Border Radius - Soft rounded edges
+  static const double radiusSm = 12.0;
+  static const double radiusMd = 16.0;
+  static const double radiusLg = 24.0;
+  static const double radiusXl = 32.0;
+  static const double radiusFull = 999.0;
+
+  static const BorderRadius borderRadiusSm = BorderRadius.all(Radius.circular(radiusSm));
+  static const BorderRadius borderRadiusMd = BorderRadius.all(Radius.circular(radiusMd));
+  static const BorderRadius borderRadiusLg = BorderRadius.all(Radius.circular(radiusLg));
+  static const BorderRadius borderRadiusXl = BorderRadius.all(Radius.circular(radiusXl));
+  static const BorderRadius borderRadiusFull = BorderRadius.all(Radius.circular(radiusFull));
 }
