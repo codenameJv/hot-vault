@@ -48,11 +48,11 @@ class _SplashScreenState extends State<SplashScreen> {
                 const Spacer(flex: 3),
                 // Loading bar at the bottom
                 Padding(
-                  padding: const EdgeInsets.symmetric(
+                  padding: EdgeInsets.symmetric(
                     horizontal: AppSpacing.xxl,
                   ),
-                  child: const SoftLoadingBar(
-                    height: 6,
+                  child: SoftLoadingBar(
+                    height: 6.h,
                   ),
                 ),
                 AppSpacing.verticalXl,

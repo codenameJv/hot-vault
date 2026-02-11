@@ -1,14 +1,16 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../core/assets/assets.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/database/database.dart';
+import '../../../../core/di/service_locator.dart';
 import '../../../../core/models/models.dart';
+import '../../../../core/services/services.dart';
 import '../../../../shared/styles/app_spacing.dart';
 import '../../../../shared/widgets/widgets.dart';
 
@@ -20,7 +22,8 @@ class CollectionScreen extends StatefulWidget {
 }
 
 class _CollectionScreenState extends State<CollectionScreen> {
-  final CarRepository _carRepository = CarRepository();
+  final CarRepository _carRepository = sl<CarRepository>();
+  final ImageService _imageService = sl<ImageService>();
   final TextEditingController _searchController = TextEditingController();
 
   List<HotWheelsCar> _cars = [];
@@ -78,11 +81,11 @@ class _CollectionScreenState extends State<CollectionScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.tertiary,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
       builder: (context) => Padding(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20.w),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -161,6 +164,10 @@ class _CollectionScreenState extends State<CollectionScreen> {
     );
 
     if (confirmed == true) {
+      // Delete image file if exists
+      if (car.imagePath != null) {
+        await _imageService.deleteImage(car.imagePath!);
+      }
       await _carRepository.deleteCar(car.id);
       _loadCars();
       if (mounted) {
@@ -181,10 +188,10 @@ class _CollectionScreenState extends State<CollectionScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        toolbarHeight: 70,
+        toolbarHeight: AppConstants.toolbarHeight,
         leadingWidth: 120,
         leading: Padding(
-          padding: const EdgeInsets.only(left: 8.0),
+          padding: EdgeInsets.only(left: 8.w),
           child: Image.asset(
             AppLogos.hotwheels,
             fit: BoxFit.contain,
@@ -192,10 +199,10 @@ class _CollectionScreenState extends State<CollectionScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.sort_rounded, color: Colors.white),
+            icon: Icon(Icons.sort_rounded, color: Colors.white, size: 24.sp),
             onPressed: _showSortOptions,
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
         ],
       ),
       body: AppBackground(
@@ -204,9 +211,9 @@ class _CollectionScreenState extends State<CollectionScreen> {
             children: [
               // Search Bar
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: EdgeInsets.symmetric(horizontal: 20.w),
                 child: SoftCard(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
                   color: AppColors.primary,
                   elevation: 4,
                   child: Row(
@@ -248,7 +255,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
               AppSpacing.verticalMd,
               // Results count
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: EdgeInsets.symmetric(horizontal: 20.w),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -275,7 +282,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
                               children: [
                                 Icon(
                                   Icons.directions_car_outlined,
-                                  size: 64,
+                                  size: 64.sp,
                                   color: Colors.white.withValues(alpha: 0.3),
                                 ),
                                 AppSpacing.verticalMd,
@@ -300,18 +307,29 @@ class _CollectionScreenState extends State<CollectionScreen> {
                             ),
                           )
                         : GridView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            padding: EdgeInsets.symmetric(horizontal: 20.w),
                             gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
-                              mainAxisSpacing: 16,
-                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16.h,
+                              crossAxisSpacing: 16.w,
                               childAspectRatio: 0.85,
                             ),
                             itemCount: _filteredCars.length,
                             itemBuilder: (context, index) {
                               final car = _filteredCars[index];
-                              return _buildCarCard(car);
+                              return CarCard(
+                                car: car,
+                                onTap: () async {
+                                  final result = await context
+                                      .push('${Routes.carDetail}/${car.id}');
+                                  if (result == true) {
+                                    _loadCars();
+                                  }
+                                },
+                                onFavoriteToggle: () => _toggleFavorite(car),
+                                onDelete: () => _deleteCar(car),
+                              );
                             },
                           ),
               ),
@@ -320,8 +338,8 @@ class _CollectionScreenState extends State<CollectionScreen> {
         ),
       ),
       floatingActionButton: Container(
-        height: 64,
-        width: 64,
+        height: 64.w,
+        width: 64.w,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: LinearGradient(
@@ -335,8 +353,8 @@ class _CollectionScreenState extends State<CollectionScreen> {
           boxShadow: [
             BoxShadow(
               color: AppColors.primary.withValues(alpha: 0.5),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+              blurRadius: 12.r,
+              offset: Offset(0, 4.h),
             ),
           ],
         ),
@@ -350,10 +368,10 @@ class _CollectionScreenState extends State<CollectionScreen> {
           },
           backgroundColor: Colors.transparent,
           elevation: 0,
-          child: const Icon(
+          child: Icon(
             Icons.add,
             color: Colors.white,
-            size: 28,
+            size: 28.sp,
           ),
         ),
       ),
@@ -361,7 +379,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
         color: AppColors.tertiary,
         elevation: 0,
         child: SizedBox(
-          height: 60,
+          height: 60.h,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -370,15 +388,15 @@ class _CollectionScreenState extends State<CollectionScreen> {
                 icon: Icon(
                   Icons.home_rounded,
                   color: Colors.white.withValues(alpha: 0.5),
-                  size: 28,
+                  size: 28.sp,
                 ),
               ),
               IconButton(
                 onPressed: () {},
-                icon: const Icon(
+                icon: Icon(
                   Icons.grid_view_rounded,
                   color: AppColors.primary,
-                  size: 28,
+                  size: 28.sp,
                 ),
               ),
               IconButton(
@@ -386,7 +404,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
                 icon: Icon(
                   Icons.favorite_border_rounded,
                   color: Colors.white.withValues(alpha: 0.5),
-                  size: 28,
+                  size: 28.sp,
                 ),
               ),
               IconButton(
@@ -394,7 +412,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
                 icon: Icon(
                   Icons.person_outline_rounded,
                   color: Colors.white.withValues(alpha: 0.5),
-                  size: 28,
+                  size: 28.sp,
                 ),
               ),
             ],
@@ -404,149 +422,4 @@ class _CollectionScreenState extends State<CollectionScreen> {
     );
   }
 
-  Widget _buildCarCard(HotWheelsCar car) {
-    return GestureDetector(
-      onTap: () async {
-        final result = await context.push('${Routes.carDetail}/${car.id}');
-        if (result == true) {
-          _loadCars();
-        }
-      },
-      child: SoftCard(
-        padding: AppSpacing.paddingMd,
-        color: AppColors.primary,
-        elevation: 6,
-        shadowColor: AppColors.primary.withValues(alpha: 0.4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  borderRadius: AppSpacing.borderRadiusSm,
-                ),
-                child: car.imagePath != null
-                    ? ClipRRect(
-                        borderRadius: AppSpacing.borderRadiusSm,
-                        child: Image.file(
-                          File(car.imagePath!),
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              _buildPlaceholder(),
-                        ),
-                      )
-                    : _buildPlaceholder(),
-              ),
-            ),
-            AppSpacing.verticalSm,
-            // Car name
-            Text(
-              car.name,
-              style: AppTextStyles.titleSmall.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            if (car.series != null || car.year != null)
-              Text(
-                [
-                  if (car.series != null) car.series,
-                  if (car.year != null) car.year.toString(),
-                ].join(' - '),
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: Colors.white54,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            AppSpacing.verticalXs,
-            // Condition badge and actions
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                if (car.condition != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _getConditionColor(car.condition!),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      car.condition!,
-                      style: AppTextStyles.labelSmall.copyWith(
-                        color: Colors.white,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    GestureDetector(
-                      onTap: () => _toggleFavorite(car),
-                      child: Icon(
-                        car.isFavorite
-                            ? Icons.favorite_rounded
-                            : Icons.favorite_border_rounded,
-                        color: car.isFavorite
-                            ? AppColors.error
-                            : Colors.white.withValues(alpha: 0.5),
-                        size: 18,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    GestureDetector(
-                      onTap: () => _deleteCar(car),
-                      child: Icon(
-                        Icons.delete_outline_rounded,
-                        color: Colors.white.withValues(alpha: 0.5),
-                        size: 18,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPlaceholder() {
-    return Center(
-      child: Icon(
-        Icons.directions_car_rounded,
-        color: Colors.white.withValues(alpha: 0.3),
-        size: 40,
-      ),
-    );
-  }
-
-  Color _getConditionColor(String condition) {
-    switch (condition.toLowerCase()) {
-      case 'mint':
-        return AppColors.success;
-      case 'near mint':
-        return AppColors.success.withValues(alpha: 0.8);
-      case 'excellent':
-        return Colors.blue;
-      case 'good':
-        return AppColors.warning;
-      case 'fair':
-        return Colors.orange;
-      case 'poor':
-        return AppColors.error;
-      default:
-        return Colors.grey;
-    }
-  }
 }

@@ -2,15 +2,18 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/database/database.dart';
+import '../../../../core/di/service_locator.dart';
 import '../../../../core/models/models.dart';
+import '../../../../core/services/services.dart';
+import '../../../../core/utils/utils.dart';
 import '../../../../shared/styles/app_spacing.dart';
 import '../../../../shared/widgets/widgets.dart';
 
@@ -27,22 +30,14 @@ class _AddCarScreenState extends State<AddCarScreen> {
   final _seriesController = TextEditingController();
   final _yearController = TextEditingController();
   final _notesController = TextEditingController();
-  final CarRepository _carRepository = CarRepository();
+  final CarRepository _carRepository = sl<CarRepository>();
+  final ImageService _imageService = sl<ImageService>();
   final ImagePicker _imagePicker = ImagePicker();
 
   String _selectedCondition = 'Mint';
   DateTime? _acquiredDate;
   bool _isSaving = false;
   File? _selectedImage;
-
-  final List<String> _conditions = [
-    'Mint',
-    'Near Mint',
-    'Excellent',
-    'Good',
-    'Fair',
-    'Poor',
-  ];
 
   @override
   void dispose() {
@@ -57,9 +52,9 @@ class _AddCarScreenState extends State<AddCarScreen> {
     try {
       final XFile? pickedFile = await _imagePicker.pickImage(
         source: source,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 85,
+        maxWidth: AppConstants.imageMaxWidth,
+        maxHeight: AppConstants.imageMaxHeight,
+        imageQuality: AppConstants.imageQuality,
       );
 
       if (pickedFile != null) {
@@ -79,69 +74,25 @@ class _AddCarScreenState extends State<AddCarScreen> {
     }
   }
 
-  void _showImageSourceDialog() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.tertiary,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Add Photo',
-              style: AppTextStyles.titleLarge.copyWith(color: Colors.white),
-            ),
-            AppSpacing.verticalLg,
-            ListTile(
-              leading: const Icon(Icons.camera_alt_rounded, color: Colors.white),
-              title: Text(
-                'Take Photo',
-                style: AppTextStyles.bodyLarge.copyWith(color: Colors.white),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _pickImage(ImageSource.camera);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library_rounded, color: Colors.white),
-              title: Text(
-                'Choose from Gallery',
-                style: AppTextStyles.bodyLarge.copyWith(color: Colors.white),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _pickImage(ImageSource.gallery);
-              },
-            ),
-            if (_selectedImage != null)
-              ListTile(
-                leading: const Icon(Icons.delete_rounded, color: AppColors.error),
-                title: Text(
-                  'Remove Photo',
-                  style: AppTextStyles.bodyLarge.copyWith(color: AppColors.error),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  setState(() => _selectedImage = null);
-                },
-              ),
-            AppSpacing.verticalMd,
-          ],
-        ),
-      ),
+  Future<void> _showImageSourceDialog() async {
+    final source = await ImagePickerDialog.show(
+      context,
+      title: 'Add Photo',
+      hasExistingImage: _selectedImage != null,
     );
+
+    if (source != null) {
+      _pickImage(source);
+    } else if (_selectedImage != null) {
+      setState(() => _selectedImage = null);
+    }
   }
 
   Future<void> _selectDate() async {
     final picked = await showDatePicker(
       context: context,
       initialDate: _acquiredDate ?? DateTime.now(),
-      firstDate: DateTime(1968),
+      firstDate: DateTime(AppConstants.hotWheelsFirstYear),
       lastDate: DateTime.now(),
       builder: (context, child) {
         return Theme(
@@ -162,20 +113,9 @@ class _AddCarScreenState extends State<AddCarScreen> {
 
   Future<String?> _saveImageToAppDir(File imageFile) async {
     try {
-      final appDir = await getApplicationDocumentsDirectory();
-      final imagesDir = Directory('${appDir.path}/car_images');
-
-      if (!await imagesDir.exists()) {
-        await imagesDir.create(recursive: true);
-      }
-
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}${path.extension(imageFile.path)}';
-      final savedImage = await imageFile.copy('${imagesDir.path}/$fileName');
-
-      return savedImage.path;
+      return await _imageService.saveImage(imageFile);
     } catch (e) {
-      // ignore: avoid_print
-      print('Error saving image: $e');
+      AppLogger.error('Error saving image', e);
       return null;
     }
   }
@@ -219,10 +159,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
         context.pop(true);
       }
     } catch (e, stackTrace) {
-      // ignore: avoid_print
-      print('Error saving car: $e');
-      // ignore: avoid_print
-      print('Stack trace: $stackTrace');
+      AppLogger.error('Error saving car', e, stackTrace);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -258,7 +195,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
       body: AppBackground(
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(20.w),
             child: Form(
               key: _formKey,
               child: Column(
@@ -279,14 +216,14 @@ class _AddCarScreenState extends State<AddCarScreen> {
                             borderRadius: AppSpacing.borderRadiusMd,
                             child: Image.file(
                               _selectedImage!,
-                              height: 200,
+                              height: 200.h,
                               width: double.infinity,
                               fit: BoxFit.cover,
                             ),
                           )
                         else
                           Container(
-                            height: 150,
+                            height: 150.h,
                             width: double.infinity,
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.1),
@@ -297,7 +234,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
                               children: [
                                 Icon(
                                   Icons.camera_alt_rounded,
-                                  size: 48,
+                                  size: 48.sp,
                                   color: Colors.white.withValues(alpha: 0.5),
                                 ),
                                 AppSpacing.verticalSm,
@@ -433,12 +370,11 @@ class _AddCarScreenState extends State<AddCarScreen> {
                         ),
                         AppSpacing.verticalSm,
                         DropdownButtonFormField<String>(
-                          // ignore: deprecated_member_use
-                          value: _selectedCondition,
+                          initialValue: _selectedCondition,
                           dropdownColor: AppColors.tertiary,
                           style: const TextStyle(color: Colors.white),
                           decoration: _inputDecoration(null),
-                          items: _conditions.map((condition) {
+                          items: ConditionHelper.conditions.map((condition) {
                             return DropdownMenuItem(
                               value: condition,
                               child: Text(condition),
@@ -476,7 +412,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
                             Icon(
                               Icons.calendar_today_rounded,
                               color: Colors.white.withValues(alpha: 0.7),
-                              size: 20,
+                              size: 20.sp,
                             ),
                             AppSpacing.horizontalMd,
                             Text(
@@ -537,29 +473,6 @@ class _AddCarScreenState extends State<AddCarScreen> {
     );
   }
 
-  InputDecoration _inputDecoration(String? hint) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
-      filled: true,
-      fillColor: Colors.white.withValues(alpha: 0.1),
-      border: OutlineInputBorder(
-        borderRadius: AppSpacing.borderRadiusMd,
-        borderSide: BorderSide.none,
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: AppSpacing.borderRadiusMd,
-        borderSide: BorderSide.none,
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: AppSpacing.borderRadiusMd,
-        borderSide: const BorderSide(color: Colors.white54, width: 1),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: AppSpacing.borderRadiusMd,
-        borderSide: const BorderSide(color: AppColors.error, width: 1),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-    );
-  }
+  InputDecoration _inputDecoration(String? hint) =>
+      InputDecorationHelper.soft(hint: hint);
 }

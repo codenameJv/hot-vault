@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../app/theme/app_colors.dart';
 import '../styles/app_spacing.dart';
@@ -14,7 +15,7 @@ class SoftButton extends StatelessWidget {
     this.isLoading = false,
     this.isDisabled = false,
     this.width,
-    this.height = 56,
+    this.height,
     this.padding,
     this.icon,
   });
@@ -25,7 +26,7 @@ class SoftButton extends StatelessWidget {
   final bool isLoading;
   final bool isDisabled;
   final double? width;
-  final double height;
+  final double? height;
   final EdgeInsetsGeometry? padding;
   final Widget? icon;
 
@@ -36,7 +37,7 @@ class SoftButton extends StatelessWidget {
     bool isLoading = false,
     bool isDisabled = false,
     double? width,
-    double height = 56,
+    double? height,
     Widget? icon,
   }) {
     return SoftButton(
@@ -59,7 +60,7 @@ class SoftButton extends StatelessWidget {
     bool isLoading = false,
     bool isDisabled = false,
     double? width,
-    double height = 56,
+    double? height,
     Widget? icon,
   }) {
     return SoftButton(
@@ -82,7 +83,7 @@ class SoftButton extends StatelessWidget {
     bool isLoading = false,
     bool isDisabled = false,
     double? width,
-    double height = 56,
+    double? height,
     Widget? icon,
   }) {
     return SoftButton(
@@ -105,7 +106,7 @@ class SoftButton extends StatelessWidget {
     bool isLoading = false,
     bool isDisabled = false,
     double? width,
-    double height = 56,
+    double? height,
     Widget? icon,
   }) {
     return SoftButton(
@@ -127,7 +128,7 @@ class SoftButton extends StatelessWidget {
 
     return SizedBox(
       width: width,
-      height: height,
+      height: height ?? 56.h,
       child: _buildButton(context, effectiveOnPressed),
     );
   }
@@ -162,10 +163,10 @@ class SoftButton extends StatelessWidget {
   Widget _buildChild(BuildContext context) {
     if (isLoading) {
       return SizedBox(
-        width: 24,
-        height: 24,
+        width: 24.w,
+        height: 24.w,
         child: CircularProgressIndicator(
-          strokeWidth: 2.5,
+          strokeWidth: 2.5.w,
           color: variant == SoftButtonVariant.primary
               ? AppColors.secondary
               : AppColors.primary,
@@ -201,8 +202,8 @@ class SoftButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: AppSpacing.borderRadiusMd,
           ),
-          textStyle: const TextStyle(
-            fontSize: 16,
+          textStyle: TextStyle(
+            fontSize: 16.sp,
             fontWeight: FontWeight.w600,
           ),
         );
@@ -217,8 +218,8 @@ class SoftButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: AppSpacing.borderRadiusMd,
           ),
-          textStyle: const TextStyle(
-            fontSize: 16,
+          textStyle: TextStyle(
+            fontSize: 16.sp,
             fontWeight: FontWeight.w600,
           ),
         );
@@ -227,12 +228,12 @@ class SoftButton extends StatelessWidget {
           foregroundColor: AppColors.primary,
           disabledForegroundColor: AppColors.primary.withValues(alpha: 0.5),
           padding: padding ?? AppSpacing.paddingMd,
-          side: const BorderSide(color: AppColors.primary, width: 1.5),
+          side: BorderSide(color: AppColors.primary, width: 1.5.w),
           shape: RoundedRectangleBorder(
             borderRadius: AppSpacing.borderRadiusMd,
           ),
-          textStyle: const TextStyle(
-            fontSize: 16,
+          textStyle: TextStyle(
+            fontSize: 16.sp,
             fontWeight: FontWeight.w600,
           ),
         );
@@ -244,8 +245,8 @@ class SoftButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: AppSpacing.borderRadiusMd,
           ),
-          textStyle: const TextStyle(
-            fontSize: 16,
+          textStyle: TextStyle(
+            fontSize: 16.sp,
             fontWeight: FontWeight.w600,
           ),
         );

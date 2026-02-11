@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../app/theme/app_colors.dart';
 import '../styles/app_spacing.dart';
@@ -7,7 +8,7 @@ class SoftLoadingBar extends StatefulWidget {
   const SoftLoadingBar({
     super.key,
     this.value,
-    this.height = 8,
+    this.height,
     this.width,
     this.backgroundColor,
     this.progressColor,
@@ -18,7 +19,7 @@ class SoftLoadingBar extends StatefulWidget {
   /// If null, shows an indeterminate animated loading bar.
   /// If provided (0.0 to 1.0), shows a determinate progress bar.
   final double? value;
-  final double height;
+  final double? height;
   final double? width;
   final Color? backgroundColor;
   final Color? progressColor;
@@ -75,8 +76,10 @@ class _SoftLoadingBarState extends State<SoftLoadingBar>
         widget.backgroundColor ?? AppColors.secondary.withValues(alpha: 0.3);
     final progressColor = widget.progressColor ?? AppColors.secondary;
 
+    final effectiveHeight = widget.height ?? 8.h;
+
     return Container(
-      height: widget.height,
+      height: effectiveHeight,
       width: widget.width,
       decoration: BoxDecoration(
         color: backgroundColor,
@@ -85,7 +88,7 @@ class _SoftLoadingBarState extends State<SoftLoadingBar>
       clipBehavior: Clip.antiAlias,
       child: widget.value != null
           ? _buildDeterminateBar(progressColor, effectiveBorderRadius)
-          : _buildIndeterminateBar(progressColor, effectiveBorderRadius),
+          : _buildIndeterminateBar(progressColor, effectiveBorderRadius, effectiveHeight),
     );
   }
 
@@ -102,7 +105,7 @@ class _SoftLoadingBarState extends State<SoftLoadingBar>
     );
   }
 
-  Widget _buildIndeterminateBar(Color color, BorderRadius borderRadius) {
+  Widget _buildIndeterminateBar(Color color, BorderRadius borderRadius, double height) {
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
@@ -110,7 +113,7 @@ class _SoftLoadingBarState extends State<SoftLoadingBar>
           painter: _IndeterminateLoadingPainter(
             progress: _animation.value,
             color: color,
-            borderRadius: widget.height / 2,
+            borderRadius: height / 2,
           ),
           size: Size.infinite,
         );

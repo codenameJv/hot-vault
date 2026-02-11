@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../app/theme/app_colors.dart';
 import '../styles/app_spacing.dart';
@@ -68,7 +69,7 @@ class SoftCard extends StatelessWidget {
       borderRadius: borderRadius,
       border: Border.all(
         color: borderColor ?? AppColors.primary.withValues(alpha: 0.15),
-        width: 1.5,
+        width: 1.5.w,
       ),
       onTap: onTap,
       child: child,
@@ -118,9 +119,9 @@ class SoftCard extends StatelessWidget {
             ? [
                 BoxShadow(
                   color: shadowColor ?? AppColors.primary.withValues(alpha: 0.08),
-                  blurRadius: elevation * 2,
-                  spreadRadius: elevation * 0.5,
-                  offset: Offset(0, elevation),
+                  blurRadius: (elevation * 2).r,
+                  spreadRadius: (elevation * 0.5).r,
+                  offset: Offset(0, elevation.h),
                 ),
               ]
             : null,

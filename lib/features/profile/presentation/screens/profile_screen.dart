@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../core/assets/assets.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/database/database.dart';
+import '../../../../core/di/service_locator.dart';
+import '../../../../core/services/services.dart';
 import '../../../../shared/styles/app_spacing.dart';
 import '../../../../shared/widgets/widgets.dart';
 
@@ -17,7 +21,8 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final CarRepository _carRepository = CarRepository();
+  final CarRepository _carRepository = sl<CarRepository>();
+  final ImageService _imageService = sl<ImageService>();
 
   int _totalCars = 0;
   int _totalSeries = 0;
@@ -45,6 +50,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _deleteAllData() async {
+    // Clean up all images (passing empty list means all images are orphaned)
+    await _imageService.cleanupOrphanedImages([]);
     await _carRepository.deleteAllCars();
     _loadStats();
     if (mounted) {
@@ -97,10 +104,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        toolbarHeight: 70,
+        toolbarHeight: AppConstants.toolbarHeight,
         leadingWidth: 120,
         leading: Padding(
-          padding: const EdgeInsets.only(left: 8.0),
+          padding: EdgeInsets.only(left: 8.w),
           child: Image.asset(
             AppLogos.hotwheels,
             fit: BoxFit.contain,
@@ -110,7 +117,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: AppBackground(
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: EdgeInsets.symmetric(horizontal: 20.w),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -165,8 +172,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ),
                           Container(
-                            width: 1,
-                            height: 50,
+                            width: 1.w,
+                            height: 50.h,
                             color: Colors.white24,
                           ),
                           Expanded(
@@ -276,8 +283,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         children: [
                           Image.asset(
                             AppLogos.hotwheels,
-                            width: 60,
-                            height: 30,
+                            width: 60.w,
+                            height: 30.h,
                             fit: BoxFit.contain,
                           ),
                           AppSpacing.horizontalMd,
@@ -314,7 +321,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 AppSpacing.verticalXl,
-                const SizedBox(height: 80),
+                SizedBox(height: 80.h),
               ],
             ),
           ),
@@ -324,7 +331,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         color: AppColors.tertiary,
         elevation: 0,
         child: SizedBox(
-          height: 60,
+          height: 60.h,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -333,7 +340,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 icon: Icon(
                   Icons.home_rounded,
                   color: Colors.white.withValues(alpha: 0.5),
-                  size: 28,
+                  size: 28.sp,
                 ),
               ),
               IconButton(
@@ -341,7 +348,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 icon: Icon(
                   Icons.grid_view_rounded,
                   color: Colors.white.withValues(alpha: 0.5),
-                  size: 28,
+                  size: 28.sp,
                 ),
               ),
               IconButton(
@@ -349,15 +356,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 icon: Icon(
                   Icons.favorite_border_rounded,
                   color: Colors.white.withValues(alpha: 0.5),
-                  size: 28,
+                  size: 28.sp,
                 ),
               ),
               IconButton(
                 onPressed: () {},
-                icon: const Icon(
+                icon: Icon(
                   Icons.person_rounded,
                   color: AppColors.primary,
-                  size: 28,
+                  size: 28.sp,
                 ),
               ),
             ],
@@ -373,7 +380,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Icon(
           icon,
           color: Colors.white70,
-          size: 24,
+          size: 24.sp,
         ),
         AppSpacing.verticalSm,
         Text(
@@ -415,7 +422,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 color: enabled
                     ? (iconColor ?? Colors.white70)
                     : Colors.white38,
-                size: 24,
+                size: 24.sp,
               ),
               AppSpacing.horizontalMd,
               Expanded(

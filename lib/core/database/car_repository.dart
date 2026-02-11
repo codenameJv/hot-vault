@@ -223,6 +223,15 @@ class CarRepository {
     return Sqflite.firstIntValue(result) ?? 0;
   }
 
+  // READ - Get all image paths (for cleanup)
+  Future<List<String>> getAllImagePaths() async {
+    final db = await _databaseHelper.database;
+    final maps = await db.rawQuery(
+      'SELECT imagePath FROM ${DatabaseHelper.tableCars} WHERE imagePath IS NOT NULL',
+    );
+    return maps.map((m) => m['imagePath'] as String).toList();
+  }
+
   String _getSortColumn(SortField field) {
     switch (field) {
       case SortField.name:

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
@@ -6,7 +7,9 @@ import '../../../../app/router/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../core/assets/assets.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/database/database.dart';
+import '../../../../core/di/service_locator.dart';
 import '../../../../core/models/models.dart';
 import '../../../../shared/styles/app_spacing.dart';
 import '../../../../shared/widgets/widgets.dart';
@@ -19,7 +22,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final CarRepository _carRepository = CarRepository();
+  final CarRepository _carRepository = sl<CarRepository>();
 
   int _totalCount = 0;
   int _totalSeries = 0;
@@ -65,10 +68,10 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        toolbarHeight: 70,
+        toolbarHeight: AppConstants.toolbarHeight,
         leadingWidth: 120,
         leading: Padding(
-          padding: const EdgeInsets.only(left: 8.0),
+          padding: EdgeInsets.only(left: 8.w),
           child: Image.asset(
             AppLogos.hotwheels,
             fit: BoxFit.contain,
@@ -78,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: AppBackground(
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: EdgeInsets.symmetric(horizontal: 20.w),
             child: Column(
               children: [
                 AppSpacing.verticalLg,
@@ -208,7 +211,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   children: [
                                     Icon(
                                       Icons.directions_car_outlined,
-                                      size: 48,
+                                      size: 48.sp,
                                       color: Colors.white.withValues(alpha: 0.5),
                                     ),
                                     AppSpacing.verticalMd,
@@ -243,15 +246,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 AppSpacing.verticalMd,
                 // Space for bottom nav
-                const SizedBox(height: 80),
+                SizedBox(height: 80.h),
               ],
             ),
           ),
         ),
       ),
       floatingActionButton: Container(
-        height: 64,
-        width: 64,
+        height: 64.w,
+        width: 64.w,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: LinearGradient(
@@ -265,8 +268,8 @@ class _HomeScreenState extends State<HomeScreen> {
           boxShadow: [
             BoxShadow(
               color: AppColors.primary.withValues(alpha: 0.5),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+              blurRadius: 12.r,
+              offset: Offset(0, 4.h),
             ),
           ],
         ),
@@ -280,10 +283,10 @@ class _HomeScreenState extends State<HomeScreen> {
           },
           backgroundColor: Colors.transparent,
           elevation: 0,
-          child: const Icon(
+          child: Icon(
             Icons.camera_alt,
             color: Colors.white,
-            size: 28,
+            size: 28.sp,
           ),
         ),
       ),
@@ -291,10 +294,10 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomAppBar(
         color: AppColors.tertiary,
         elevation: 0,
-        notchMargin: 8,
+        notchMargin: 8.w,
         padding: EdgeInsets.zero,
         child: SizedBox(
-          height: 60,
+          height: 60.h,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -305,10 +308,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     IconButton(
                       onPressed: () {},
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.home_rounded,
                         color: AppColors.primary,
-                        size: 28,
+                        size: 28.sp,
                       ),
                     ),
                     IconButton(
@@ -316,14 +319,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icon(
                         Icons.grid_view_rounded,
                         color: Colors.white.withValues(alpha: 0.5),
-                        size: 28,
+                        size: 28.sp,
                       ),
                     ),
                   ],
                 ),
               ),
               // Space for FAB
-              const SizedBox(width: 64),
+              SizedBox(width: 64.w),
               // Right side items
               Expanded(
                 child: Row(
@@ -334,7 +337,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icon(
                         Icons.favorite_border_rounded,
                         color: Colors.white.withValues(alpha: 0.5),
-                        size: 28,
+                        size: 28.sp,
                       ),
                     ),
                     IconButton(
@@ -342,7 +345,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icon(
                         Icons.person_outline_rounded,
                         color: Colors.white.withValues(alpha: 0.5),
-                        size: 28,
+                        size: 28.sp,
                       ),
                     ),
                   ],
@@ -360,12 +363,12 @@ class _HomeScreenState extends State<HomeScreen> {
     required String date,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: EdgeInsets.symmetric(vertical: 12.h),
       child: Row(
         children: [
           Container(
-            width: 8,
-            height: 8,
+            width: 8.w,
+            height: 8.w,
             decoration: const BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,

@@ -1,41 +1,47 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 abstract final class AppSpacing {
-  static const double xs = 4.0;
-  static const double sm = 8.0;
-  static const double md = 16.0;
-  static const double lg = 24.0;
-  static const double xl = 32.0;
-  static const double xxl = 48.0;
+  // Base spacing values
+  static double get xs => 4.w;
+  static double get sm => 8.w;
+  static double get md => 16.w;
+  static double get lg => 24.w;
+  static double get xl => 32.w;
+  static double get xxl => 48.w;
 
-  static const SizedBox verticalXs = SizedBox(height: xs);
-  static const SizedBox verticalSm = SizedBox(height: sm);
-  static const SizedBox verticalMd = SizedBox(height: md);
-  static const SizedBox verticalLg = SizedBox(height: lg);
-  static const SizedBox verticalXl = SizedBox(height: xl);
+  // Vertical spacing
+  static SizedBox get verticalXs => SizedBox(height: 4.h);
+  static SizedBox get verticalSm => SizedBox(height: 8.h);
+  static SizedBox get verticalMd => SizedBox(height: 16.h);
+  static SizedBox get verticalLg => SizedBox(height: 24.h);
+  static SizedBox get verticalXl => SizedBox(height: 32.h);
 
-  static const SizedBox horizontalXs = SizedBox(width: xs);
-  static const SizedBox horizontalSm = SizedBox(width: sm);
-  static const SizedBox horizontalMd = SizedBox(width: md);
-  static const SizedBox horizontalLg = SizedBox(width: lg);
-  static const SizedBox horizontalXl = SizedBox(width: xl);
+  // Horizontal spacing
+  static SizedBox get horizontalXs => SizedBox(width: 4.w);
+  static SizedBox get horizontalSm => SizedBox(width: 8.w);
+  static SizedBox get horizontalMd => SizedBox(width: 16.w);
+  static SizedBox get horizontalLg => SizedBox(width: 24.w);
+  static SizedBox get horizontalXl => SizedBox(width: 32.w);
 
-  static const EdgeInsets paddingXs = EdgeInsets.all(xs);
-  static const EdgeInsets paddingSm = EdgeInsets.all(sm);
-  static const EdgeInsets paddingMd = EdgeInsets.all(md);
-  static const EdgeInsets paddingLg = EdgeInsets.all(lg);
-  static const EdgeInsets paddingXl = EdgeInsets.all(xl);
+  // Padding
+  static EdgeInsets get paddingXs => EdgeInsets.all(4.w);
+  static EdgeInsets get paddingSm => EdgeInsets.all(8.w);
+  static EdgeInsets get paddingMd => EdgeInsets.all(16.w);
+  static EdgeInsets get paddingLg => EdgeInsets.all(24.w);
+  static EdgeInsets get paddingXl => EdgeInsets.all(32.w);
+
+  // Border Radius values
+  static double get radiusSm => 12.r;
+  static double get radiusMd => 16.r;
+  static double get radiusLg => 24.r;
+  static double get radiusXl => 32.r;
+  static double get radiusFull => 999.r;
 
   // Border Radius - Soft rounded edges
-  static const double radiusSm = 12.0;
-  static const double radiusMd = 16.0;
-  static const double radiusLg = 24.0;
-  static const double radiusXl = 32.0;
-  static const double radiusFull = 999.0;
-
-  static const BorderRadius borderRadiusSm = BorderRadius.all(Radius.circular(radiusSm));
-  static const BorderRadius borderRadiusMd = BorderRadius.all(Radius.circular(radiusMd));
-  static const BorderRadius borderRadiusLg = BorderRadius.all(Radius.circular(radiusLg));
-  static const BorderRadius borderRadiusXl = BorderRadius.all(Radius.circular(radiusXl));
-  static const BorderRadius borderRadiusFull = BorderRadius.all(Radius.circular(radiusFull));
+  static BorderRadius get borderRadiusSm => BorderRadius.all(Radius.circular(12.r));
+  static BorderRadius get borderRadiusMd => BorderRadius.all(Radius.circular(16.r));
+  static BorderRadius get borderRadiusLg => BorderRadius.all(Radius.circular(24.r));
+  static BorderRadius get borderRadiusXl => BorderRadius.all(Radius.circular(32.r));
+  static BorderRadius get borderRadiusFull => BorderRadius.all(Radius.circular(999.r));
 }

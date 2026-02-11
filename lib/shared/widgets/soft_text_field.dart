@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../app/theme/app_colors.dart';
 import '../styles/app_spacing.dart';
@@ -180,7 +181,7 @@ class SoftTextField extends StatelessWidget {
           Text(
             label!,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 14.sp,
               fontWeight: FontWeight.w500,
               color: hasError ? AppColors.error : AppColors.primary,
             ),
@@ -205,23 +206,23 @@ class SoftTextField extends StatelessWidget {
           onTap: onTap,
           validator: validator,
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 16.sp,
             color: enabled ? AppColors.primary : AppColors.primary.withValues(alpha: 0.5),
           ),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(
-              fontSize: 16,
+              fontSize: 16.sp,
               color: AppColors.primary.withValues(alpha: 0.4),
             ),
             helperText: helperText,
             helperStyle: TextStyle(
-              fontSize: 12,
+              fontSize: 12.sp,
               color: AppColors.primary.withValues(alpha: 0.6),
             ),
             errorText: errorText,
-            errorStyle: const TextStyle(
-              fontSize: 12,
+            errorStyle: TextStyle(
+              fontSize: 12.sp,
               color: AppColors.error,
             ),
             prefixIcon: prefixIcon,
@@ -229,9 +230,9 @@ class SoftTextField extends StatelessWidget {
             filled: true,
             fillColor: fillColor ?? AppColors.primary.withValues(alpha: 0.05),
             contentPadding: contentPadding ??
-                const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.md,
+                EdgeInsets.symmetric(
+                  horizontal: 16.w,
+                  vertical: 16.h,
                 ),
             border: OutlineInputBorder(
               borderRadius: effectiveBorderRadius,
@@ -243,23 +244,23 @@ class SoftTextField extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: effectiveBorderRadius,
-              borderSide: const BorderSide(
+              borderSide: BorderSide(
                 color: AppColors.primary,
-                width: 2,
+                width: 2.w,
               ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: effectiveBorderRadius,
-              borderSide: const BorderSide(
+              borderSide: BorderSide(
                 color: AppColors.error,
-                width: 1.5,
+                width: 1.5.w,
               ),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: effectiveBorderRadius,
-              borderSide: const BorderSide(
+              borderSide: BorderSide(
                 color: AppColors.error,
-                width: 2,
+                width: 2.w,
               ),
             ),
             disabledBorder: OutlineInputBorder(
