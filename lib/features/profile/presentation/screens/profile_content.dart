@@ -5,7 +5,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../core/assets/assets.dart';
-import '../../../../core/providers/providers.dart';
 import '../../../../shared/styles/app_spacing.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../providers/profile_providers.dart';
@@ -75,14 +74,6 @@ class ProfileContent extends ConsumerWidget {
               AppSpacing.verticalXl,
               // Stats Cards
               _buildStatsSection(state),
-              AppSpacing.verticalLg,
-              // Settings Section
-              _buildSectionHeader(
-                icon: Icons.settings_rounded,
-                title: 'Settings',
-              ),
-              AppSpacing.verticalMd,
-              _buildSettingsCard(context, ref),
               AppSpacing.verticalLg,
               // About Section
               _buildSectionHeader(
@@ -246,71 +237,6 @@ class ProfileContent extends ConsumerWidget {
             style: AppTextStyles.bodySmall.copyWith(
               color: Colors.white54,
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSettingsCard(BuildContext context, WidgetRef ref) {
-    final themeState = ref.watch(themeProvider);
-
-    return SoftCard(
-      padding: EdgeInsets.all(20.w),
-      color: AppColors.primary,
-      elevation: 6,
-      shadowColor: AppColors.primary.withValues(alpha: 0.4),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(10.w),
-                decoration: BoxDecoration(
-                  color: AppColors.tertiary.withValues(alpha: 0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  themeState.isDarkMode
-                      ? Icons.dark_mode_rounded
-                      : Icons.light_mode_rounded,
-                  color: AppColors.tertiary,
-                  size: 24.sp,
-                ),
-              ),
-              AppSpacing.horizontalMd,
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Dark Mode',
-                      style: AppTextStyles.titleMedium.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    AppSpacing.verticalXs,
-                    Text(
-                      themeState.isDarkMode ? 'Currently enabled' : 'Currently disabled',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: Colors.white54,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Switch(
-                value: themeState.isDarkMode,
-                onChanged: (_) {
-                  ref.read(themeProvider.notifier).toggleTheme();
-                },
-                activeThumbColor: AppColors.tertiary,
-                activeTrackColor: AppColors.tertiary.withValues(alpha: 0.4),
-                inactiveThumbColor: Colors.white70,
-                inactiveTrackColor: Colors.white24,
-              ),
-            ],
           ),
         ],
       ),
