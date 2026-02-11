@@ -9,6 +9,8 @@ class HotWheelsCar {
   final String? notes;
   final String? condition;
   final DateTime? acquiredDate;
+  final double? purchasePrice;
+  final double? sellingPrice;
   final bool isFavorite;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -22,6 +24,8 @@ class HotWheelsCar {
     this.notes,
     this.condition,
     this.acquiredDate,
+    this.purchasePrice,
+    this.sellingPrice,
     this.isFavorite = false,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -38,6 +42,8 @@ class HotWheelsCar {
     String? notes,
     String? condition,
     DateTime? acquiredDate,
+    double? purchasePrice,
+    double? sellingPrice,
     bool? isFavorite,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -51,6 +57,8 @@ class HotWheelsCar {
       notes: notes ?? this.notes,
       condition: condition ?? this.condition,
       acquiredDate: acquiredDate ?? this.acquiredDate,
+      purchasePrice: purchasePrice ?? this.purchasePrice,
+      sellingPrice: sellingPrice ?? this.sellingPrice,
       isFavorite: isFavorite ?? this.isFavorite,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
@@ -67,6 +75,8 @@ class HotWheelsCar {
       'notes': notes,
       'condition': condition,
       'acquiredDate': acquiredDate?.millisecondsSinceEpoch,
+      'purchasePrice': purchasePrice,
+      'sellingPrice': sellingPrice,
       'isFavorite': isFavorite ? 1 : 0,
       'createdAt': createdAt.millisecondsSinceEpoch,
       'updatedAt': updatedAt.millisecondsSinceEpoch,
@@ -85,6 +95,8 @@ class HotWheelsCar {
       acquiredDate: map['acquiredDate'] != null
           ? DateTime.fromMillisecondsSinceEpoch(map['acquiredDate'] as int)
           : null,
+      purchasePrice: map['purchasePrice'] as double?,
+      sellingPrice: map['sellingPrice'] as double?,
       isFavorite: (map['isFavorite'] as int?) == 1,
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt'] as int),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(map['updatedAt'] as int),

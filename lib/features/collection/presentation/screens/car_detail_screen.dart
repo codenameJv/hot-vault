@@ -236,6 +236,11 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
                                   AppSpacing.verticalLg,
                                   // Quick Stats Row
                                   _buildQuickStats(),
+                                  // Price Section
+                                  if (_car!.purchasePrice != null || _car!.sellingPrice != null) ...[
+                                    AppSpacing.verticalMd,
+                                    _buildPriceStats(),
+                                  ],
                                   AppSpacing.verticalLg,
                                   // Details Section
                                   _buildDetailsSection(),
@@ -407,6 +412,36 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
               label: 'Acquired',
               value: DateFormat('MMM d, yyyy').format(_car!.acquiredDate!),
               color: AppColors.secondary,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildPriceStats() {
+    final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+    return Row(
+      children: [
+        // Purchase Price
+        if (_car!.purchasePrice != null)
+          Expanded(
+            child: _buildStatCard(
+              icon: Icons.shopping_cart_rounded,
+              label: 'Paid',
+              value: currencyFormat.format(_car!.purchasePrice),
+              color: AppColors.success,
+            ),
+          ),
+        if (_car!.purchasePrice != null && _car!.sellingPrice != null)
+          AppSpacing.horizontalMd,
+        // Selling Price
+        if (_car!.sellingPrice != null)
+          Expanded(
+            child: _buildStatCard(
+              icon: Icons.sell_rounded,
+              label: 'Selling For',
+              value: currencyFormat.format(_car!.sellingPrice),
+              color: AppColors.tertiary,
             ),
           ),
       ],

@@ -9,7 +9,7 @@ class DatabaseHelper {
   DatabaseHelper._internal();
 
   static const String _databaseName = 'hot_vault.db';
-  static const int _databaseVersion = 2;
+  static const int _databaseVersion = 3;
   static const String tableCars = 'cars';
 
   Future<Database> get database async {
@@ -41,6 +41,8 @@ class DatabaseHelper {
         notes TEXT,
         condition TEXT,
         acquiredDate INTEGER,
+        purchasePrice REAL,
+        sellingPrice REAL,
         isFavorite INTEGER NOT NULL DEFAULT 0,
         createdAt INTEGER NOT NULL,
         updatedAt INTEGER NOT NULL
@@ -69,6 +71,9 @@ class DatabaseHelper {
     if (oldVersion < 2) {
       await _addFavoriteColumnIfMissing(db);
     }
+    if (oldVersion < 3) {
+      await _addPriceColumnsIfMissing(db);
+    }
   }
 
   Future<void> _onOpen(Database db) async {
@@ -93,6 +98,23 @@ class DatabaseHelper {
       // Create index if it doesn't exist
       await db.execute('''
         CREATE INDEX IF NOT EXISTS idx_cars_isFavorite ON $tableCars (isFavorite)
+      ''');
+    }
+  }
+
+  Future<void> _addPriceColumnsIfMissing(Database db) async {
+    final result = await db.rawQuery('PRAGMA table_info($tableCars)');
+    final hasPurchasePrice = result.any((col) => col['name'] == 'purchasePrice');
+    final hasSellingPrice = result.any((col) => col['name'] == 'sellingPrice');
+
+    if (!hasPurchasePrice) {
+      await db.execute('''
+        ALTER TABLE $tableCars ADD COLUMN purchasePrice REAL
+      ''');
+    }
+    if (!hasSellingPrice) {
+      await db.execute('''
+        ALTER TABLE $tableCars ADD COLUMN sellingPrice REAL
       ''');
     }
   }

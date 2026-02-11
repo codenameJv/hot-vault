@@ -29,6 +29,8 @@ class _AddCarScreenState extends State<AddCarScreen> {
   final _nameController = TextEditingController();
   final _seriesController = TextEditingController();
   final _yearController = TextEditingController();
+  final _purchasePriceController = TextEditingController();
+  final _sellingPriceController = TextEditingController();
   final _notesController = TextEditingController();
   final CarRepository _carRepository = sl<CarRepository>();
   final ImageService _imageService = sl<ImageService>();
@@ -44,6 +46,8 @@ class _AddCarScreenState extends State<AddCarScreen> {
     _nameController.dispose();
     _seriesController.dispose();
     _yearController.dispose();
+    _purchasePriceController.dispose();
+    _sellingPriceController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -145,6 +149,12 @@ class _AddCarScreenState extends State<AddCarScreen> {
             : null,
         condition: _selectedCondition,
         acquiredDate: _acquiredDate,
+        purchasePrice: _purchasePriceController.text.trim().isNotEmpty
+            ? double.tryParse(_purchasePriceController.text.trim())
+            : null,
+        sellingPrice: _sellingPriceController.text.trim().isNotEmpty
+            ? double.tryParse(_sellingPriceController.text.trim())
+            : null,
       );
 
       await _carRepository.insertCar(car);
@@ -429,6 +439,71 @@ class _AddCarScreenState extends State<AddCarScreen> {
                         ),
                       ],
                     ),
+                  ),
+                  AppSpacing.verticalMd,
+                  // Price Row
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SoftCard(
+                          padding: AppSpacing.paddingLg,
+                          color: AppColors.primary,
+                          elevation: 8,
+                          shadowColor: AppColors.primary.withValues(alpha: 0.5),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Purchase Price',
+                                style: AppTextStyles.titleMedium.copyWith(
+                                  color: Colors.white70,
+                                ),
+                              ),
+                              AppSpacing.verticalSm,
+                              TextFormField(
+                                controller: _purchasePriceController,
+                                style: const TextStyle(color: Colors.white),
+                                decoration: _inputDecoration('\$0.00'),
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      AppSpacing.horizontalMd,
+                      Expanded(
+                        child: SoftCard(
+                          padding: AppSpacing.paddingLg,
+                          color: AppColors.primary,
+                          elevation: 8,
+                          shadowColor: AppColors.primary.withValues(alpha: 0.5),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Selling Price',
+                                style: AppTextStyles.titleMedium.copyWith(
+                                  color: Colors.white70,
+                                ),
+                              ),
+                              AppSpacing.verticalSm,
+                              TextFormField(
+                                controller: _sellingPriceController,
+                                style: const TextStyle(color: Colors.white),
+                                decoration: _inputDecoration('\$0.00'),
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   AppSpacing.verticalMd,
                   // Notes

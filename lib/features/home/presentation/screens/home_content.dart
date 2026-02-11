@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -6,13 +7,11 @@ import 'package:intl/intl.dart';
 import '../../../../app/router/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
-import '../../../../core/database/database.dart';
-import '../../../../core/di/service_locator.dart';
-import '../../../../core/models/models.dart';
 import '../../../../shared/styles/app_spacing.dart';
 import '../../../../shared/widgets/widgets.dart';
+import '../../providers/home_providers.dart';
 
-class HomeContent extends StatefulWidget {
+class HomeContent extends ConsumerWidget {
   final VoidCallback? onNavigateToCollection;
   final VoidCallback? onNavigateToFavorites;
 
@@ -22,56 +21,14 @@ class HomeContent extends StatefulWidget {
     this.onNavigateToFavorites,
   });
 
-  @override
-  State<HomeContent> createState() => HomeContentState();
-}
-
-class HomeContentState extends State<HomeContent> {
-  final CarRepository _carRepository = sl<CarRepository>();
-
-  int _totalCount = 0;
-  int _totalSeries = 0;
-  int _favoritesCount = 0;
-  List<HotWheelsCar> _recentActivity = [];
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    setState(() => _isLoading = true);
-
-    try {
-      final count = await _carRepository.getTotalCount();
-      final recentCars = await _carRepository.getRecentCars(limit: 5);
-      final allSeries = await _carRepository.getAllSeries();
-      final favoritesCount = await _carRepository.getFavoritesCount();
-
-      setState(() {
-        _totalCount = count;
-        _totalSeries = allSeries.length;
-        _favoritesCount = favoritesCount;
-        _recentActivity = recentCars;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  void refresh() {
-    _loadData();
-  }
-
   String _formatDate(DateTime date) {
     return DateFormat('MMM d, yyyy').format(date);
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(homeProvider);
+
     return AppBackground(
       child: SafeArea(
         child: Padding(
@@ -81,7 +38,7 @@ class HomeContentState extends State<HomeContent> {
               AppSpacing.verticalLg,
               // Total Collection Card
               GestureDetector(
-                onTap: widget.onNavigateToCollection,
+                onTap: onNavigateToCollection,
                 child: SoftCard(
                   padding: AppSpacing.paddingLg,
                   color: AppColors.primary,
@@ -103,7 +60,7 @@ class HomeContentState extends State<HomeContent> {
                               ),
                               AppSpacing.verticalSm,
                               Text(
-                                _isLoading ? '--' : '$_totalCount',
+                                state.isLoading ? '--' : '${state.totalCount}',
                                 style: AppTextStyles.displayLarge.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -129,7 +86,7 @@ class HomeContentState extends State<HomeContent> {
                   // Total Series Card
                   Expanded(
                     child: GestureDetector(
-                      onTap: widget.onNavigateToCollection,
+                      onTap: onNavigateToCollection,
                       child: SoftCard(
                         padding: AppSpacing.paddingLg,
                         color: AppColors.primary,
@@ -156,7 +113,7 @@ class HomeContentState extends State<HomeContent> {
                             ),
                             AppSpacing.verticalSm,
                             Text(
-                              _isLoading ? '--' : '$_totalSeries',
+                              state.isLoading ? '--' : '${state.totalSeries}',
                               style: AppTextStyles.headlineMedium.copyWith(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -171,7 +128,7 @@ class HomeContentState extends State<HomeContent> {
                   // Favorites Card
                   Expanded(
                     child: GestureDetector(
-                      onTap: widget.onNavigateToFavorites,
+                      onTap: onNavigateToFavorites,
                       child: SoftCard(
                         padding: AppSpacing.paddingLg,
                         color: AppColors.primary,
@@ -198,7 +155,7 @@ class HomeContentState extends State<HomeContent> {
                             ),
                             AppSpacing.verticalSm,
                             Text(
-                              _isLoading ? '--' : '$_favoritesCount',
+                              state.isLoading ? '--' : '${state.favoritesCount}',
                               style: AppTextStyles.headlineMedium.copyWith(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -230,13 +187,13 @@ class HomeContentState extends State<HomeContent> {
                   color: AppColors.primary,
                   elevation: 8,
                   shadowColor: AppColors.primary.withValues(alpha: 0.5),
-                  child: _isLoading
+                  child: state.isLoading
                       ? const Center(
                           child: CircularProgressIndicator(
                             color: Colors.white,
                           ),
                         )
-                      : _recentActivity.isEmpty
+                      : state.recentActivity.isEmpty
                           ? Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -265,17 +222,19 @@ class HomeContentState extends State<HomeContent> {
                             )
                           : ListView.builder(
                               padding: EdgeInsets.zero,
-                              itemCount: _recentActivity.length,
+                              itemCount: state.recentActivity.length,
                               itemBuilder: (context, index) {
-                                final car = _recentActivity[index];
+                                final car = state.recentActivity[index];
                                 return _buildActivityItem(
+                                  context: context,
+                                  ref: ref,
                                   name: car.name,
                                   date: _formatDate(car.createdAt),
                                   onTap: () async {
                                     final result = await context
                                         .push('${Routes.carDetail}/${car.id}');
                                     if (result == true) {
-                                      _loadData();
+                                      ref.read(homeProvider.notifier).refresh();
                                     }
                                   },
                                 );
@@ -294,6 +253,8 @@ class HomeContentState extends State<HomeContent> {
   }
 
   Widget _buildActivityItem({
+    required BuildContext context,
+    required WidgetRef ref,
     required String name,
     required String date,
     VoidCallback? onTap,

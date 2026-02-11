@@ -1,71 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../core/assets/assets.dart';
-import '../../../../core/database/database.dart';
-import '../../../../core/di/service_locator.dart';
-import '../../../../core/services/services.dart';
+import '../../../../core/providers/providers.dart';
 import '../../../../shared/styles/app_spacing.dart';
 import '../../../../shared/widgets/widgets.dart';
+import '../../providers/profile_providers.dart';
 
-class ProfileContent extends StatefulWidget {
+class ProfileContent extends ConsumerWidget {
   const ProfileContent({super.key});
 
-  @override
-  State<ProfileContent> createState() => ProfileContentState();
-}
-
-class ProfileContentState extends State<ProfileContent> {
-  final CarRepository _carRepository = sl<CarRepository>();
-  final ImageService _imageService = sl<ImageService>();
-
-  int _totalCars = 0;
-  int _totalSeries = 0;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadStats();
-  }
-
-  Future<void> _loadStats() async {
-    setState(() => _isLoading = true);
-    try {
-      final totalCars = await _carRepository.getTotalCount();
-      final allSeries = await _carRepository.getAllSeries();
-      setState(() {
-        _totalCars = totalCars;
-        _totalSeries = allSeries.length;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  void refresh() {
-    _loadStats();
-  }
-
-  Future<void> _deleteAllData() async {
-    // Clean up all images (passing empty list means all images are orphaned)
-    await _imageService.cleanupOrphanedImages([]);
-    await _carRepository.deleteAllCars();
-    _loadStats();
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('All data deleted'),
-          backgroundColor: AppColors.error,
-        ),
-      );
-    }
-  }
-
-  void _showDeleteConfirmation() {
+  void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -86,7 +34,7 @@ class ProfileContentState extends State<ProfileContent> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              _deleteAllData();
+              _deleteAllData(context, ref);
             },
             child: const Text(
               'Delete All',
@@ -98,8 +46,22 @@ class ProfileContentState extends State<ProfileContent> {
     );
   }
 
+  Future<void> _deleteAllData(BuildContext context, WidgetRef ref) async {
+    await ref.read(profileProvider.notifier).deleteAllData();
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('All data deleted'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(profileProvider);
+
     return AppBackground(
       child: SafeArea(
         child: SingleChildScrollView(
@@ -109,10 +71,18 @@ class ProfileContentState extends State<ProfileContent> {
             children: [
               AppSpacing.verticalLg,
               // Header Section
-              _buildHeader(),
+              _buildHeader(state),
               AppSpacing.verticalXl,
               // Stats Cards
-              _buildStatsSection(),
+              _buildStatsSection(state),
+              AppSpacing.verticalLg,
+              // Settings Section
+              _buildSectionHeader(
+                icon: Icons.settings_rounded,
+                title: 'Settings',
+              ),
+              AppSpacing.verticalMd,
+              _buildSettingsCard(context, ref),
               AppSpacing.verticalLg,
               // About Section
               _buildSectionHeader(
@@ -129,7 +99,7 @@ class ProfileContentState extends State<ProfileContent> {
                 color: AppColors.error,
               ),
               AppSpacing.verticalMd,
-              _buildDangerZone(),
+              _buildDangerZone(context, ref),
               AppSpacing.verticalXl,
               SizedBox(height: 80.h),
             ],
@@ -139,7 +109,7 @@ class ProfileContentState extends State<ProfileContent> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(ProfileState state) {
     return SoftCard(
       padding: EdgeInsets.all(24.w),
       color: AppColors.primary,
@@ -197,7 +167,9 @@ class ProfileContentState extends State<ProfileContent> {
                     borderRadius: BorderRadius.circular(12.r),
                   ),
                   child: Text(
-                    _isLoading ? '-- cars' : '$_totalCars cars collected',
+                    state.isLoading
+                        ? '-- cars'
+                        : '${state.totalCars} cars collected',
                     style: AppTextStyles.bodySmall.copyWith(
                       color: Colors.white70,
                     ),
@@ -211,14 +183,14 @@ class ProfileContentState extends State<ProfileContent> {
     );
   }
 
-  Widget _buildStatsSection() {
+  Widget _buildStatsSection(ProfileState state) {
     return Row(
       children: [
         Expanded(
           child: _buildStatCard(
             icon: Icons.directions_car_rounded,
             label: 'Total Cars',
-            value: _isLoading ? '--' : '$_totalCars',
+            value: state.isLoading ? '--' : '${state.totalCars}',
             color: AppColors.tertiary,
           ),
         ),
@@ -227,7 +199,7 @@ class ProfileContentState extends State<ProfileContent> {
           child: _buildStatCard(
             icon: Icons.layers_rounded,
             label: 'Series',
-            value: _isLoading ? '--' : '$_totalSeries',
+            value: state.isLoading ? '--' : '${state.totalSeries}',
             color: AppColors.success,
           ),
         ),
@@ -274,6 +246,71 @@ class ProfileContentState extends State<ProfileContent> {
             style: AppTextStyles.bodySmall.copyWith(
               color: Colors.white54,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSettingsCard(BuildContext context, WidgetRef ref) {
+    final themeState = ref.watch(themeProvider);
+
+    return SoftCard(
+      padding: EdgeInsets.all(20.w),
+      color: AppColors.primary,
+      elevation: 6,
+      shadowColor: AppColors.primary.withValues(alpha: 0.4),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(10.w),
+                decoration: BoxDecoration(
+                  color: AppColors.tertiary.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  themeState.isDarkMode
+                      ? Icons.dark_mode_rounded
+                      : Icons.light_mode_rounded,
+                  color: AppColors.tertiary,
+                  size: 24.sp,
+                ),
+              ),
+              AppSpacing.horizontalMd,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Dark Mode',
+                      style: AppTextStyles.titleMedium.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    AppSpacing.verticalXs,
+                    Text(
+                      themeState.isDarkMode ? 'Currently enabled' : 'Currently disabled',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: Colors.white54,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                value: themeState.isDarkMode,
+                onChanged: (_) {
+                  ref.read(themeProvider.notifier).toggleTheme();
+                },
+                activeThumbColor: AppColors.tertiary,
+                activeTrackColor: AppColors.tertiary.withValues(alpha: 0.4),
+                inactiveThumbColor: Colors.white70,
+                inactiveTrackColor: Colors.white24,
+              ),
+            ],
           ),
         ],
       ),
@@ -396,7 +433,7 @@ class ProfileContentState extends State<ProfileContent> {
     );
   }
 
-  Widget _buildDangerZone() {
+  Widget _buildDangerZone(BuildContext context, WidgetRef ref) {
     return SoftCard(
       padding: EdgeInsets.zero,
       color: AppColors.primary,
@@ -405,7 +442,7 @@ class ProfileContentState extends State<ProfileContent> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: _showDeleteConfirmation,
+          onTap: () => _showDeleteConfirmation(context, ref),
           borderRadius: BorderRadius.circular(16.r),
           child: Container(
             padding: EdgeInsets.all(20.w),

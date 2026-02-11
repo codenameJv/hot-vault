@@ -200,6 +200,29 @@ class CarRepository {
     return maps.map((map) => HotWheelsCar.fromMap(map)).toList();
   }
 
+  // FAVORITES - Get favorite cars with pagination
+  Future<List<HotWheelsCar>> getFavoriteCarsPaginated({
+    required int limit,
+    required int offset,
+    SortField sortBy = SortField.createdAt,
+    SortOrder order = SortOrder.descending,
+  }) async {
+    final db = await _databaseHelper.database;
+    final orderByColumn = _getSortColumn(sortBy);
+    final orderDirection = order == SortOrder.ascending ? 'ASC' : 'DESC';
+
+    final maps = await db.query(
+      DatabaseHelper.tableCars,
+      where: 'isFavorite = ?',
+      whereArgs: [1],
+      orderBy: '$orderByColumn $orderDirection',
+      limit: limit,
+      offset: offset,
+    );
+
+    return maps.map((map) => HotWheelsCar.fromMap(map)).toList();
+  }
+
   // FAVORITES - Toggle favorite status
   Future<int> toggleFavorite(String carId, bool isFavorite) async {
     final db = await _databaseHelper.database;

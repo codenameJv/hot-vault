@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../app/theme/app_colors.dart';
@@ -6,27 +7,23 @@ import '../../../add_car/presentation/dialogs/add_car_dialog.dart';
 import '../../../../core/assets/assets.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../collection/presentation/screens/collection_content.dart';
+import '../../../collection/providers/collection_providers.dart';
 import '../../../favorites/presentation/screens/favorites_content.dart';
+import '../../../favorites/providers/favorites_providers.dart';
 import '../../../home/presentation/screens/home_content.dart';
+import '../../../home/providers/home_providers.dart';
 import '../../../profile/presentation/screens/profile_content.dart';
+import '../../../profile/providers/profile_providers.dart';
 
-class MainTabScreen extends StatefulWidget {
+class MainTabScreen extends ConsumerStatefulWidget {
   const MainTabScreen({super.key});
 
   @override
-  State<MainTabScreen> createState() => _MainTabScreenState();
+  ConsumerState<MainTabScreen> createState() => _MainTabScreenState();
 }
 
-class _MainTabScreenState extends State<MainTabScreen> {
+class _MainTabScreenState extends ConsumerState<MainTabScreen> {
   int _currentIndex = 0;
-
-  final GlobalKey<HomeContentState> _homeKey = GlobalKey<HomeContentState>();
-  final GlobalKey<CollectionContentState> _collectionKey =
-      GlobalKey<CollectionContentState>();
-  final GlobalKey<FavoritesContentState> _favoritesKey =
-      GlobalKey<FavoritesContentState>();
-  final GlobalKey<ProfileContentState> _profileKey =
-      GlobalKey<ProfileContentState>();
 
   void _onTabSelected(int index) {
     if (_currentIndex != index) {
@@ -39,17 +36,13 @@ class _MainTabScreenState extends State<MainTabScreen> {
   void _refreshTab(int index) {
     switch (index) {
       case 0:
-        _homeKey.currentState?.refresh();
-        break;
+        ref.read(homeProvider.notifier).refresh();
       case 1:
-        _collectionKey.currentState?.refresh();
-        break;
+        ref.read(collectionProvider.notifier).refresh();
       case 2:
-        _favoritesKey.currentState?.refresh();
-        break;
+        ref.read(favoritesProvider.notifier).refresh();
       case 3:
-        _profileKey.currentState?.refresh();
-        break;
+        ref.read(profileProvider.notifier).refresh();
     }
   }
 
@@ -62,10 +55,10 @@ class _MainTabScreenState extends State<MainTabScreen> {
   }
 
   void _refreshAllTabs() {
-    _homeKey.currentState?.refresh();
-    _collectionKey.currentState?.refresh();
-    _favoritesKey.currentState?.refresh();
-    _profileKey.currentState?.refresh();
+    ref.read(homeProvider.notifier).refresh();
+    ref.read(collectionProvider.notifier).refresh();
+    ref.read(favoritesProvider.notifier).refresh();
+    ref.read(profileProvider.notifier).refresh();
   }
 
   void _onDataChanged() {
@@ -95,20 +88,17 @@ class _MainTabScreenState extends State<MainTabScreen> {
         index: _currentIndex,
         children: [
           HomeContent(
-            key: _homeKey,
             onNavigateToCollection: () => _onTabSelected(1),
             onNavigateToFavorites: () => _onTabSelected(2),
           ),
           CollectionContent(
-            key: _collectionKey,
             onDataChanged: _onDataChanged,
           ),
           FavoritesContent(
-            key: _favoritesKey,
             onNavigateToCollection: () => _onTabSelected(1),
             onDataChanged: _onDataChanged,
           ),
-          ProfileContent(key: _profileKey),
+          const ProfileContent(),
         ],
       ),
       bottomNavigationBar: _buildBottomNavBar(),

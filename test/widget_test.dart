@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:hot_vault/app/app.dart';
@@ -20,7 +21,11 @@ void main() {
       tester.view.resetDevicePixelRatio();
     });
 
-    await tester.pumpWidget(const HotVaultApp());
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: HotVaultApp(),
+      ),
+    );
 
     // The app should render a MaterialApp
     expect(find.byType(MaterialApp), findsOneWidget);

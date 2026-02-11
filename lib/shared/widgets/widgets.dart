@@ -1,6 +1,7 @@
 export 'app_background.dart';
 export 'car_card.dart';
 export 'image_picker_dialog.dart';
+export 'paginated_car_grid.dart';
 export 'soft_button.dart';
 export 'soft_card.dart';
 export 'soft_loading_bar.dart';

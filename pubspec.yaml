@@ -19,11 +19,25 @@ dependencies:
   image_picker: ^1.1.2
   path: ^1.9.0
   get_it: ^8.0.3
+  # State Management
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+  # Theme persistence
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  # Testing
+  mockito: ^5.4.4
+  build_runner: ^2.4.8
+  sqflite_common_ffi: ^2.3.3
+  # Riverpod code generation
+  riverpod_generator: ^2.4.0
+  # Immutable state classes
+  freezed: ^2.5.2
+  freezed_annotation: ^2.4.1
 
 flutter:
   uses-material-design: true
