@@ -24,6 +24,10 @@ dependencies:
   riverpod_annotation: ^2.3.5
   # Theme persistence
   shared_preferences: ^2.2.2
+  # Backup/Export
+  archive: ^3.6.1
+  share_plus: ^10.1.4
+  file_picker: ^8.1.7
 
 dev_dependencies:
   flutter_test:

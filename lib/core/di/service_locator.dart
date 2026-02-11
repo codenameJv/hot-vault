@@ -16,4 +16,10 @@ Future<void> setupServiceLocator() async {
 
   // Services
   sl.registerLazySingleton<ImageService>(() => ImageService());
+  sl.registerLazySingleton<BackupService>(
+    () => BackupService(
+      carRepository: sl<CarRepository>(),
+      imageService: sl<ImageService>(),
+    ),
+  );
 }

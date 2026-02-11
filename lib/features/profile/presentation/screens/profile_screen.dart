@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -23,10 +24,13 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final CarRepository _carRepository = sl<CarRepository>();
   final ImageService _imageService = sl<ImageService>();
+  final BackupService _backupService = sl<BackupService>();
 
   int _totalCars = 0;
   int _totalSeries = 0;
   bool _isLoading = true;
+  bool _isExporting = false;
+  bool _isImporting = false;
 
   @override
   void initState() {
@@ -61,6 +65,103 @@ class _ProfileScreenState extends State<ProfileScreen> {
           backgroundColor: AppColors.error,
         ),
       );
+    }
+  }
+
+  Future<void> _exportCollection() async {
+    setState(() => _isExporting = true);
+    try {
+      final result = await _backupService.exportCollection();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.message),
+            backgroundColor: result.success ? Colors.green : AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isExporting = false);
+      }
+    }
+  }
+
+  Future<void> _importCollection() async {
+    // Pick file
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['zip'],
+    );
+
+    if (result == null || result.files.isEmpty) return;
+
+    final filePath = result.files.single.path;
+    if (filePath == null) return;
+
+    // Show import options dialog
+    if (!mounted) return;
+    final replaceExisting = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.tertiary,
+        title: Text(
+          'Import Collection',
+          style: AppTextStyles.titleLarge.copyWith(color: Colors.white),
+        ),
+        content: Text(
+          'How would you like to import the backup?',
+          style: AppTextStyles.bodyLarge.copyWith(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Merge'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Replace All',
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (replaceExisting == null) return;
+
+    setState(() => _isImporting = true);
+    try {
+      final importResult = await _backupService.importCollection(
+        filePath,
+        replaceExisting: replaceExisting,
+      );
+
+      if (mounted) {
+        String message = importResult.message;
+        if (importResult.success) {
+          message =
+              'Imported ${importResult.carsImported} cars and ${importResult.imagesImported} images';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor:
+                importResult.success ? Colors.green : AppColors.error,
+          ),
+        );
+        // Reload stats after import
+        _loadStats();
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isImporting = false);
+      }
     }
   }
 
@@ -217,22 +318,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         color: Colors.white.withValues(alpha: 0.1),
                       ),
                       _buildSettingItem(
-                        icon: Icons.cloud_sync_outlined,
-                        title: 'Backup & Sync',
+                        icon: Icons.palette_outlined,
+                        title: 'Appearance',
                         subtitle: 'Coming soon',
                         onTap: () {},
                         enabled: false,
+                      ),
+                    ],
+                  ),
+                ),
+                AppSpacing.verticalMd,
+                // Backup Section
+                Text(
+                  'Backup',
+                  style: AppTextStyles.titleLarge.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                AppSpacing.verticalMd,
+                SoftCard(
+                  padding: EdgeInsets.zero,
+                  color: AppColors.primary,
+                  elevation: 8,
+                  shadowColor: AppColors.primary.withValues(alpha: 0.5),
+                  child: Column(
+                    children: [
+                      _buildSettingItem(
+                        icon: _isExporting
+                            ? Icons.hourglass_empty_rounded
+                            : Icons.upload_rounded,
+                        title: 'Export Collection',
+                        subtitle: 'Save your collection as a backup file',
+                        onTap: _isExporting ? () {} : _exportCollection,
+                        enabled: !_isExporting && !_isImporting,
                       ),
                       Divider(
                         height: 1,
                         color: Colors.white.withValues(alpha: 0.1),
                       ),
                       _buildSettingItem(
-                        icon: Icons.palette_outlined,
-                        title: 'Appearance',
-                        subtitle: 'Coming soon',
-                        onTap: () {},
-                        enabled: false,
+                        icon: _isImporting
+                            ? Icons.hourglass_empty_rounded
+                            : Icons.download_rounded,
+                        title: 'Import Collection',
+                        subtitle: 'Restore from a backup file',
+                        onTap: _isImporting ? () {} : _importCollection,
+                        enabled: !_isExporting && !_isImporting,
                       ),
                     ],
                   ),
