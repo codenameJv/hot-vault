@@ -53,7 +53,7 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/logo/hotwheels logo.png"
-  adaptive_icon_background: "#1a1a2e"
-  adaptive_icon_foreground: "assets/logo/hotwheels logo.png"
+  image_path: "assets/logo/HotVault Logo.png"
+  adaptive_icon_background: "#000000"
+  adaptive_icon_foreground: "assets/logo/HotVault Logo.png"
   remove_alpha_ios: true

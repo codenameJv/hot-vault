@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -5,12 +6,118 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../core/assets/assets.dart';
+import '../../../../core/di/service_locator.dart';
+import '../../../../core/services/services.dart';
 import '../../../../shared/styles/app_spacing.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../providers/profile_providers.dart';
 
-class ProfileContent extends ConsumerWidget {
+class ProfileContent extends ConsumerStatefulWidget {
   const ProfileContent({super.key});
+
+  @override
+  ConsumerState<ProfileContent> createState() => _ProfileContentState();
+}
+
+class _ProfileContentState extends ConsumerState<ProfileContent> {
+  final BackupService _backupService = sl<BackupService>();
+  bool _isExporting = false;
+  bool _isImporting = false;
+
+  Future<void> _exportCollection() async {
+    setState(() => _isExporting = true);
+    try {
+      final result = await _backupService.exportCollection();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.message),
+            backgroundColor: result.success ? Colors.green : AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isExporting = false);
+      }
+    }
+  }
+
+  Future<void> _importCollection() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['zip'],
+    );
+
+    if (result == null || result.files.isEmpty) return;
+
+    final filePath = result.files.single.path;
+    if (filePath == null) return;
+
+    if (!mounted) return;
+    final replaceExisting = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.tertiary,
+        title: Text(
+          'Import Collection',
+          style: AppTextStyles.titleLarge.copyWith(color: Colors.white),
+        ),
+        content: Text(
+          'How would you like to import the backup?',
+          style: AppTextStyles.bodyLarge.copyWith(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Merge'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Replace All',
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (replaceExisting == null) return;
+
+    setState(() => _isImporting = true);
+    try {
+      final importResult = await _backupService.importCollection(
+        filePath,
+        replaceExisting: replaceExisting,
+      );
+
+      if (mounted) {
+        String message = importResult.message;
+        if (importResult.success) {
+          message =
+              'Imported ${importResult.carsImported} cars and ${importResult.imagesImported} images';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor:
+                importResult.success ? Colors.green : AppColors.error,
+          ),
+        );
+        // Refresh profile stats
+        ref.invalidate(profileProvider);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isImporting = false);
+      }
+    }
+  }
 
   void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
     showDialog(
@@ -58,7 +165,7 @@ class ProfileContent extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final state = ref.watch(profileProvider);
 
     return AppBackground(
@@ -75,6 +182,14 @@ class ProfileContent extends ConsumerWidget {
               // Stats Cards
               _buildStatsSection(state),
               AppSpacing.verticalLg,
+              // Backup Section
+              _buildSectionHeader(
+                icon: Icons.backup_rounded,
+                title: 'Backup',
+              ),
+              AppSpacing.verticalMd,
+              _buildBackupSection(),
+              AppSpacing.verticalLg,
               // About Section
               _buildSectionHeader(
                 icon: Icons.info_outline_rounded,
@@ -90,7 +205,7 @@ class ProfileContent extends ConsumerWidget {
                 color: AppColors.error,
               ),
               AppSpacing.verticalMd,
-              _buildDangerZone(context, ref),
+              _buildDangerZone(),
               AppSpacing.verticalXl,
               SizedBox(height: 80.h),
             ],
@@ -243,6 +358,103 @@ class ProfileContent extends ConsumerWidget {
     );
   }
 
+  Widget _buildBackupSection() {
+    return SoftCard(
+      padding: EdgeInsets.zero,
+      color: AppColors.primary,
+      elevation: 6,
+      shadowColor: AppColors.primary.withValues(alpha: 0.4),
+      child: Column(
+        children: [
+          _buildBackupItem(
+            icon: _isExporting
+                ? Icons.hourglass_empty_rounded
+                : Icons.upload_rounded,
+            title: 'Export Collection',
+            subtitle: 'Save your collection as a backup file',
+            onTap: _isExporting || _isImporting ? null : _exportCollection,
+          ),
+          Divider(
+            height: 1,
+            color: Colors.white.withValues(alpha: 0.1),
+            indent: 20.w,
+            endIndent: 20.w,
+          ),
+          _buildBackupItem(
+            icon: _isImporting
+                ? Icons.hourglass_empty_rounded
+                : Icons.download_rounded,
+            title: 'Import Collection',
+            subtitle: 'Restore from a backup file',
+            onTap: _isExporting || _isImporting ? null : _importCollection,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBackupItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback? onTap,
+  }) {
+    final isEnabled = onTap != null;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16.r),
+        child: Padding(
+          padding: EdgeInsets.all(20.w),
+          child: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(10.w),
+                decoration: BoxDecoration(
+                  color: AppColors.tertiary.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  color: isEnabled ? AppColors.tertiary : Colors.white38,
+                  size: 24.sp,
+                ),
+              ),
+              AppSpacing.horizontalMd,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: AppTextStyles.titleMedium.copyWith(
+                        color: isEnabled ? Colors.white : Colors.white54,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    AppSpacing.verticalXs,
+                    Text(
+                      subtitle,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: Colors.white54,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (isEnabled)
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: Colors.white38,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSectionHeader({
     required IconData icon,
     required String title,
@@ -359,7 +571,7 @@ class ProfileContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildDangerZone(BuildContext context, WidgetRef ref) {
+  Widget _buildDangerZone() {
     return SoftCard(
       padding: EdgeInsets.zero,
       color: AppColors.primary,
