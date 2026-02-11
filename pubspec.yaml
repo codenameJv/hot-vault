@@ -29,6 +29,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.3
   # Testing
   mockito: ^5.4.4
   build_runner: ^2.4.8
@@ -44,3 +45,11 @@ flutter:
   assets:
     - assets/image/
     - assets/logo/
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/logo/hotwheels logo.png"
+  adaptive_icon_background: "#1a1a2e"
+  adaptive_icon_foreground: "assets/logo/hotwheels logo.png"
+  remove_alpha_ios: true
