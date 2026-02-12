@@ -764,7 +764,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
               return GestureDetector(
                 onTap: () {
                   // Replace current route to avoid nesting
-                  context.go('${Routes.carDetail}/${copy.id}');
+                  context.push('${Routes.carDetail}/${copy.id}');
                 },
                 child: Container(
                   width: 60.w,
