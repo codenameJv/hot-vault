@@ -9,7 +9,7 @@ class DatabaseHelper {
   DatabaseHelper._internal();
 
   static const String _databaseName = 'hot_vault.db';
-  static const int _databaseVersion = 3;
+  static const int _databaseVersion = 5;
   static const String tableCars = 'cars';
 
   Future<Database> get database async {
@@ -36,6 +36,7 @@ class DatabaseHelper {
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         series TEXT,
+        segment TEXT,
         year INTEGER,
         imagePath TEXT,
         notes TEXT,
@@ -43,6 +44,7 @@ class DatabaseHelper {
         acquiredDate INTEGER,
         purchasePrice REAL,
         sellingPrice REAL,
+        huntType TEXT DEFAULT 'normal',
         isFavorite INTEGER NOT NULL DEFAULT 0,
         createdAt INTEGER NOT NULL,
         updatedAt INTEGER NOT NULL
@@ -74,11 +76,20 @@ class DatabaseHelper {
     if (oldVersion < 3) {
       await _addPriceColumnsIfMissing(db);
     }
+    if (oldVersion < 4) {
+      await _addSegmentColumnIfMissing(db);
+    }
+    if (oldVersion < 5) {
+      await _addHuntTypeColumnIfMissing(db);
+    }
   }
 
   Future<void> _onOpen(Database db) async {
-    // Safety check: ensure isFavorite column exists (handles failed migrations)
+    // Safety check: ensure columns exist (handles failed migrations)
     await _addFavoriteColumnIfMissing(db);
+    await _addPriceColumnsIfMissing(db);
+    await _addSegmentColumnIfMissing(db);
+    await _addHuntTypeColumnIfMissing(db);
   }
 
   Future<void> _addFavoriteColumnIfMissing(Database db) async {
@@ -115,6 +126,28 @@ class DatabaseHelper {
     if (!hasSellingPrice) {
       await db.execute('''
         ALTER TABLE $tableCars ADD COLUMN sellingPrice REAL
+      ''');
+    }
+  }
+
+  Future<void> _addSegmentColumnIfMissing(Database db) async {
+    final result = await db.rawQuery('PRAGMA table_info($tableCars)');
+    final hasSegment = result.any((col) => col['name'] == 'segment');
+
+    if (!hasSegment) {
+      await db.execute('''
+        ALTER TABLE $tableCars ADD COLUMN segment TEXT
+      ''');
+    }
+  }
+
+  Future<void> _addHuntTypeColumnIfMissing(Database db) async {
+    final result = await db.rawQuery('PRAGMA table_info($tableCars)');
+    final hasHuntType = result.any((col) => col['name'] == 'huntType');
+
+    if (!hasHuntType) {
+      await db.execute('''
+        ALTER TABLE $tableCars ADD COLUMN huntType TEXT DEFAULT 'normal'
       ''');
     }
   }

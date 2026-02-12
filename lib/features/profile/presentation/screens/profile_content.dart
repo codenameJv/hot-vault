@@ -24,6 +24,55 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
   bool _isExporting = false;
   bool _isImporting = false;
 
+  void _showEditNameDialog(BuildContext context, String currentName) {
+    final controller = TextEditingController(text: currentName == 'Collector' ? '' : currentName);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.tertiary,
+        title: Text(
+          'Set Your Name',
+          style: AppTextStyles.titleLarge.copyWith(color: Colors.white),
+        ),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            hintText: 'Enter your name',
+            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
+            filled: true,
+            fillColor: Colors.white.withValues(alpha: 0.1),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: BorderSide.none,
+            ),
+          ),
+          textCapitalization: TextCapitalization.words,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              final name = controller.text.trim();
+              if (name.isNotEmpty) {
+                ref.read(profileProvider.notifier).setCollectorName(name);
+              } else {
+                ref.read(profileProvider.notifier).setCollectorName('Collector');
+              }
+              Navigator.pop(context);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _exportCollection() async {
     setState(() => _isExporting = true);
     try {
@@ -216,97 +265,127 @@ class _ProfileContentState extends ConsumerState<ProfileContent> {
   }
 
   Widget _buildHeader(ProfileState state) {
-    return SoftCard(
-      padding: EdgeInsets.all(24.w),
-      color: AppColors.primary,
-      elevation: 10,
-      shadowColor: AppColors.primary.withValues(alpha: 0.6),
-      child: Row(
-        children: [
-          Container(
-            width: 70.w,
-            height: 70.w,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.tertiary,
-                  AppColors.primary,
+    return GestureDetector(
+      onTap: () => _showEditNameDialog(context, state.collectorName),
+      child: SoftCard(
+        padding: EdgeInsets.all(24.w),
+        color: AppColors.primary,
+        elevation: 10,
+        shadowColor: AppColors.primary.withValues(alpha: 0.6),
+        child: Row(
+          children: [
+            Container(
+              width: 70.w,
+              height: 70.w,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppColors.tertiary,
+                    AppColors.primary,
+                  ],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.tertiary.withValues(alpha: 0.4),
+                    blurRadius: 12.r,
+                    offset: Offset(0, 4.h),
+                  ),
                 ],
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.tertiary.withValues(alpha: 0.4),
-                  blurRadius: 12.r,
-                  offset: Offset(0, 4.h),
-                ),
-              ],
+              child: Icon(
+                Icons.person_rounded,
+                color: Colors.white,
+                size: 36.sp,
+              ),
             ),
-            child: Icon(
-              Icons.person_rounded,
-              color: Colors.white,
-              size: 36.sp,
-            ),
-          ),
-          AppSpacing.horizontalLg,
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Collector',
-                  style: AppTextStyles.headlineSmall.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+            AppSpacing.horizontalLg,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          state.collectorName,
+                          style: AppTextStyles.headlineSmall.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      AppSpacing.horizontalSm,
+                      Icon(
+                        Icons.edit_rounded,
+                        color: Colors.white38,
+                        size: 16.sp,
+                      ),
+                    ],
                   ),
-                ),
-                AppSpacing.verticalXs,
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 10.w,
-                    vertical: 4.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.tertiary.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                  child: Text(
-                    state.isLoading
-                        ? '-- cars'
-                        : '${state.totalCars} cars collected',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: Colors.white70,
+                  AppSpacing.verticalXs,
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 10.w,
+                      vertical: 4.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.tertiary.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    child: Text(
+                      state.isLoading
+                          ? '-- cars'
+                          : '${state.totalCars} cars collected',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: Colors.white70,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildStatsSection(ProfileState state) {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: _buildStatCard(
-            icon: Icons.directions_car_rounded,
-            label: 'Total Cars',
-            value: state.isLoading ? '--' : '${state.totalCars}',
-            color: AppColors.tertiary,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                icon: Icons.directions_car_rounded,
+                label: 'Total Cars',
+                value: state.isLoading ? '--' : '${state.totalCars}',
+                color: AppColors.tertiary,
+              ),
+            ),
+            AppSpacing.horizontalMd,
+            Expanded(
+              child: _buildStatCard(
+                icon: Icons.layers_rounded,
+                label: 'Series',
+                value: state.isLoading ? '--' : '${state.totalSeries}',
+                color: AppColors.success,
+              ),
+            ),
+          ],
         ),
-        AppSpacing.horizontalMd,
-        Expanded(
+        AppSpacing.verticalMd,
+        SizedBox(
+          width: double.infinity,
           child: _buildStatCard(
-            icon: Icons.layers_rounded,
-            label: 'Series',
-            value: state.isLoading ? '--' : '${state.totalSeries}',
-            color: AppColors.success,
+            icon: Icons.account_balance_wallet_rounded,
+            label: 'Total Spent',
+            value: state.isLoading ? '--' : '₱${state.totalSpent.toStringAsFixed(2)}',
+            color: AppColors.warning,
           ),
         ),
       ],

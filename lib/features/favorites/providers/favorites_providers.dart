@@ -17,11 +17,15 @@ class FavoritesState {
   final SortOrder sortOrder;
   final String searchQuery;
   final String? selectedSeries;
+  final String? selectedSegment;
   final String? selectedCondition;
   final int? selectedYear;
+  final HuntType? selectedHuntType;
   final List<String> availableSeries;
+  final List<String> availableSegments;
   final List<String> availableConditions;
   final List<int> availableYears;
+  final List<HuntType> availableHuntTypes;
   final String? error;
 
   const FavoritesState({
@@ -36,19 +40,25 @@ class FavoritesState {
     this.sortOrder = SortOrder.descending,
     this.searchQuery = '',
     this.selectedSeries,
+    this.selectedSegment,
     this.selectedCondition,
     this.selectedYear,
+    this.selectedHuntType,
     this.availableSeries = const [],
+    this.availableSegments = const [],
     this.availableConditions = const [],
     this.availableYears = const [],
+    this.availableHuntTypes = const [],
     this.error,
   });
 
   int get activeFilterCount {
     int count = 0;
     if (selectedSeries != null) count++;
+    if (selectedSegment != null) count++;
     if (selectedCondition != null) count++;
     if (selectedYear != null) count++;
+    if (selectedHuntType != null) count++;
     return count;
   }
 
@@ -64,15 +74,21 @@ class FavoritesState {
     SortOrder? sortOrder,
     String? searchQuery,
     String? selectedSeries,
+    String? selectedSegment,
     String? selectedCondition,
     int? selectedYear,
+    HuntType? selectedHuntType,
     List<String>? availableSeries,
+    List<String>? availableSegments,
     List<String>? availableConditions,
     List<int>? availableYears,
+    List<HuntType>? availableHuntTypes,
     String? error,
     bool clearSeriesFilter = false,
+    bool clearSegmentFilter = false,
     bool clearConditionFilter = false,
     bool clearYearFilter = false,
+    bool clearHuntTypeFilter = false,
   }) {
     return FavoritesState(
       favoriteCars: favoriteCars ?? this.favoriteCars,
@@ -86,11 +102,15 @@ class FavoritesState {
       sortOrder: sortOrder ?? this.sortOrder,
       searchQuery: searchQuery ?? this.searchQuery,
       selectedSeries: clearSeriesFilter ? null : (selectedSeries ?? this.selectedSeries),
+      selectedSegment: clearSegmentFilter ? null : (selectedSegment ?? this.selectedSegment),
       selectedCondition: clearConditionFilter ? null : (selectedCondition ?? this.selectedCondition),
       selectedYear: clearYearFilter ? null : (selectedYear ?? this.selectedYear),
+      selectedHuntType: clearHuntTypeFilter ? null : (selectedHuntType ?? this.selectedHuntType),
       availableSeries: availableSeries ?? this.availableSeries,
+      availableSegments: availableSegments ?? this.availableSegments,
       availableConditions: availableConditions ?? this.availableConditions,
       availableYears: availableYears ?? this.availableYears,
+      availableHuntTypes: availableHuntTypes ?? this.availableHuntTypes,
       error: error,
     );
   }
@@ -128,12 +148,17 @@ class FavoritesNotifier extends StateNotifier<FavoritesState> {
 
       // Extract available filter options from all favorites
       final seriesSet = <String>{};
+      final segmentSet = <String>{};
       final conditionSet = <String>{};
       final yearSet = <int>{};
+      final huntTypeSet = <HuntType>{};
 
       for (final car in allCars) {
         if (car.series != null && car.series!.isNotEmpty) {
           seriesSet.add(car.series!);
+        }
+        if (car.segment != null && car.segment!.isNotEmpty) {
+          segmentSet.add(car.segment!);
         }
         if (car.condition != null && car.condition!.isNotEmpty) {
           conditionSet.add(car.condition!);
@@ -141,13 +166,16 @@ class FavoritesNotifier extends StateNotifier<FavoritesState> {
         if (car.year != null) {
           yearSet.add(car.year!);
         }
+        huntTypeSet.add(car.huntType);
       }
 
       state = state.copyWith(
         favoriteCars: cars,
         availableSeries: seriesSet.toList()..sort(),
+        availableSegments: segmentSet.toList()..sort(),
         availableConditions: conditionSet.toList()..sort(),
         availableYears: yearSet.toList()..sort((a, b) => b.compareTo(a)),
+        availableHuntTypes: huntTypeSet.toList()..sort((a, b) => a.index.compareTo(b.index)),
         isLoading: false,
         hasReachedEnd: cars.length < state.pageSize,
       );
@@ -199,13 +227,19 @@ class FavoritesNotifier extends StateNotifier<FavoritesState> {
       if (query.isNotEmpty) {
         final nameLower = car.name.toLowerCase();
         final seriesLower = car.series?.toLowerCase() ?? '';
-        if (!nameLower.contains(query) && !seriesLower.contains(query)) {
+        final segmentLower = car.segment?.toLowerCase() ?? '';
+        if (!nameLower.contains(query) && !seriesLower.contains(query) && !segmentLower.contains(query)) {
           return false;
         }
       }
 
       // Series filter
       if (state.selectedSeries != null && car.series != state.selectedSeries) {
+        return false;
+      }
+
+      // Segment filter
+      if (state.selectedSegment != null && car.segment != state.selectedSegment) {
         return false;
       }
 
@@ -216,6 +250,11 @@ class FavoritesNotifier extends StateNotifier<FavoritesState> {
 
       // Year filter
       if (state.selectedYear != null && car.year != state.selectedYear) {
+        return false;
+      }
+
+      // Hunt type filter
+      if (state.selectedHuntType != null && car.huntType != state.selectedHuntType) {
         return false;
       }
 
@@ -261,6 +300,15 @@ class FavoritesNotifier extends StateNotifier<FavoritesState> {
     _applyFilters();
   }
 
+  void setSegmentFilter(String? segment) {
+    if (segment == null) {
+      state = state.copyWith(clearSegmentFilter: true);
+    } else {
+      state = state.copyWith(selectedSegment: segment);
+    }
+    _applyFilters();
+  }
+
   void setConditionFilter(String? condition) {
     if (condition == null) {
       state = state.copyWith(clearConditionFilter: true);
@@ -279,12 +327,23 @@ class FavoritesNotifier extends StateNotifier<FavoritesState> {
     _applyFilters();
   }
 
+  void setHuntTypeFilter(HuntType? huntType) {
+    if (huntType == null) {
+      state = state.copyWith(clearHuntTypeFilter: true);
+    } else {
+      state = state.copyWith(selectedHuntType: huntType);
+    }
+    _applyFilters();
+  }
+
   void clearAllFilters() {
     state = state.copyWith(
       searchQuery: '',
       clearSeriesFilter: true,
+      clearSegmentFilter: true,
       clearConditionFilter: true,
       clearYearFilter: true,
+      clearHuntTypeFilter: true,
     );
     _applyFilters();
   }

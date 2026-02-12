@@ -323,6 +323,53 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
   Widget _buildCarHeader() {
     return Column(
       children: [
+        // Hunt Type Badge (STH/RTH)
+        if (_car!.huntType != HuntType.normal) ...[
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: 16.w,
+              vertical: 8.h,
+            ),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: _car!.huntType == HuntType.sth
+                    ? [const Color(0xFFFFD700), const Color(0xFFFFA500)]
+                    : [AppColors.success, AppColors.success.withValues(alpha: 0.7)],
+              ),
+              borderRadius: BorderRadius.circular(20.r),
+              boxShadow: [
+                BoxShadow(
+                  color: (_car!.huntType == HuntType.sth
+                          ? const Color(0xFFFFD700)
+                          : AppColors.success)
+                      .withValues(alpha: 0.4),
+                  blurRadius: 8.r,
+                  offset: Offset(0, 2.h),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  _car!.huntType == HuntType.sth ? Icons.star_rounded : Icons.local_fire_department_rounded,
+                  color: _car!.huntType == HuntType.sth ? Colors.black87 : Colors.white,
+                  size: 18.sp,
+                ),
+                SizedBox(width: 6.w),
+                Text(
+                  _car!.huntType == HuntType.sth ? 'SUPER TREASURE HUNT' : 'REGULAR TREASURE HUNT',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: _car!.huntType == HuntType.sth ? Colors.black87 : Colors.white,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          AppSpacing.verticalMd,
+        ],
         // Car Name
         Text(
           _car!.name,
@@ -333,12 +380,14 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
           ),
           textAlign: TextAlign.center,
         ),
-        if (_car!.series != null || _car!.year != null) ...[
+        if (_car!.series != null || _car!.year != null || _car!.segment != null) ...[
           AppSpacing.verticalSm,
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 8.w,
+            runSpacing: 8.h,
             children: [
-              if (_car!.series != null) ...[
+              if (_car!.series != null)
                 Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: 12.w,
@@ -358,10 +407,27 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
                     ),
                   ),
                 ),
-              ],
-              if (_car!.series != null && _car!.year != null)
-                AppSpacing.horizontalSm,
-              if (_car!.year != null) ...[
+              if (_car!.segment != null)
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 12.w,
+                    vertical: 6.h,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.warning.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(20.r),
+                    border: Border.all(
+                      color: AppColors.warning.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  child: Text(
+                    _car!.segment!,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: Colors.white70,
+                    ),
+                  ),
+                ),
+              if (_car!.year != null)
                 Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: 12.w,
@@ -381,7 +447,6 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
                     ),
                   ),
                 ),
-              ],
             ],
           ),
         ],
@@ -419,7 +484,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
   }
 
   Widget _buildPriceStats() {
-    final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+    final currencyFormat = NumberFormat.currency(symbol: '₱', decimalDigits: 2);
     return Row(
       children: [
         // Purchase Price

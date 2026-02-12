@@ -18,6 +18,11 @@ abstract final class AppTheme {
         elevation: 0,
         backgroundColor: AppColors.surface,
       ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: Colors.white,
+        ),
+      ),
       textTheme: TextTheme(
         displayLarge: AppTextStyles.displayLarge,
         displayMedium: AppTextStyles.displayMedium,
@@ -54,6 +59,11 @@ abstract final class AppTheme {
         centerTitle: true,
         elevation: 0,
         backgroundColor: AppColorsDark.surface,
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: Colors.white,
+        ),
       ),
       textTheme: TextTheme(
         displayLarge: AppTextStyles.displayLarge,

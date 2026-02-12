@@ -246,6 +246,17 @@ class CarRepository {
     return Sqflite.firstIntValue(result) ?? 0;
   }
 
+  // ANALYTICS - Get total spent on purchases
+  Future<double> getTotalSpent() async {
+    final db = await _databaseHelper.database;
+    final result = await db.rawQuery(
+      'SELECT SUM(purchasePrice) as total FROM ${DatabaseHelper.tableCars} WHERE purchasePrice IS NOT NULL',
+    );
+    final total = result.first['total'];
+    if (total == null) return 0.0;
+    return (total as num).toDouble();
+  }
+
   // READ - Get all image paths (for cleanup)
   Future<List<String>> getAllImagePaths() async {
     final db = await _databaseHelper.database;

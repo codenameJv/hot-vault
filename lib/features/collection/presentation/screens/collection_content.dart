@@ -158,6 +158,37 @@ class _CollectionContentState extends ConsumerState<CollectionContent> {
                           ),
                           AppSpacing.verticalLg,
                         ],
+                        if (state.availableSegments.isNotEmpty) ...[
+                          _buildFilterSection(
+                            title: 'Segment',
+                            icon: Icons.category_rounded,
+                            child: Wrap(
+                              spacing: 8.w,
+                              runSpacing: 8.h,
+                              children: state.availableSegments.map((segment) {
+                                final isSelected = state.selectedSegment == segment;
+                                return FilterChip(
+                                  label: Text(segment),
+                                  selected: isSelected,
+                                  onSelected: (selected) {
+                                    ref.read(collectionProvider.notifier)
+                                        .setSegmentFilter(selected ? segment : null);
+                                  },
+                                  backgroundColor: AppColors.primary,
+                                  selectedColor: AppColors.tertiary,
+                                  labelStyle: TextStyle(
+                                    color: isSelected ? Colors.white : Colors.white70,
+                                  ),
+                                  checkmarkColor: Colors.white,
+                                  side: BorderSide(
+                                    color: isSelected ? AppColors.tertiary : Colors.white24,
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                          AppSpacing.verticalLg,
+                        ],
                         if (state.availableConditions.isNotEmpty) ...[
                           _buildFilterSection(
                             title: 'Condition',
@@ -218,6 +249,49 @@ class _CollectionContentState extends ConsumerState<CollectionContent> {
                               }).toList(),
                             ),
                           ),
+                          AppSpacing.verticalLg,
+                        ],
+                        if (state.availableHuntTypes.isNotEmpty) ...[
+                          _buildFilterSection(
+                            title: 'Type',
+                            icon: Icons.local_fire_department_rounded,
+                            child: Wrap(
+                              spacing: 8.w,
+                              runSpacing: 8.h,
+                              children: state.availableHuntTypes.map((huntType) {
+                                final isSelected = state.selectedHuntType == huntType;
+                                return FilterChip(
+                                  label: Text(_getHuntTypeLabel(huntType)),
+                                  selected: isSelected,
+                                  onSelected: (selected) {
+                                    ref.read(collectionProvider.notifier)
+                                        .setHuntTypeFilter(selected ? huntType : null);
+                                  },
+                                  backgroundColor: AppColors.primary,
+                                  selectedColor: huntType == HuntType.sth
+                                      ? const Color(0xFFFFD700)
+                                      : huntType == HuntType.rth
+                                          ? AppColors.success
+                                          : AppColors.tertiary,
+                                  labelStyle: TextStyle(
+                                    color: isSelected
+                                        ? (huntType == HuntType.sth ? Colors.black87 : Colors.white)
+                                        : Colors.white70,
+                                  ),
+                                  checkmarkColor: huntType == HuntType.sth ? Colors.black87 : Colors.white,
+                                  side: BorderSide(
+                                    color: isSelected
+                                        ? (huntType == HuntType.sth
+                                            ? const Color(0xFFFFD700)
+                                            : huntType == HuntType.rth
+                                                ? AppColors.success
+                                                : AppColors.tertiary)
+                                        : Colors.white24,
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
                         ],
                         AppSpacing.verticalLg,
                       ],
@@ -230,6 +304,17 @@ class _CollectionContentState extends ConsumerState<CollectionContent> {
         },
       ),
     );
+  }
+
+  String _getHuntTypeLabel(HuntType type) {
+    switch (type) {
+      case HuntType.normal:
+        return 'Normal';
+      case HuntType.rth:
+        return 'RTH';
+      case HuntType.sth:
+        return 'STH';
+    }
   }
 
   Widget _buildFilterSection({

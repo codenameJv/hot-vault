@@ -133,10 +133,20 @@ class BackupService {
       await zipFile.writeAsBytes(zipData);
 
       // Share the file
-      await Share.shareXFiles(
+      final shareResult = await Share.shareXFiles(
         [XFile(zipPath)],
         subject: 'Hot Vault Collection Backup',
       );
+
+      // Check if user dismissed the share dialog
+      if (shareResult.status == ShareResultStatus.dismissed) {
+        // Clean up temp file
+        await zipFile.delete();
+        return BackupResult(
+          success: false,
+          message: 'Export cancelled',
+        );
+      }
 
       return BackupResult(
         success: true,

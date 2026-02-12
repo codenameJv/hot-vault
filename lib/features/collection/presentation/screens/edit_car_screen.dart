@@ -30,6 +30,7 @@ class _EditCarScreenState extends State<EditCarScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _seriesController = TextEditingController();
+  final _segmentController = TextEditingController();
   final _yearController = TextEditingController();
   final _purchasePriceController = TextEditingController();
   final _sellingPriceController = TextEditingController();
@@ -39,6 +40,7 @@ class _EditCarScreenState extends State<EditCarScreen> {
   final ImagePicker _imagePicker = ImagePicker();
 
   String _selectedCondition = 'Mint';
+  HuntType _selectedHuntType = HuntType.normal;
   DateTime? _acquiredDate;
   bool _isSaving = false;
   bool _isLoading = true;
@@ -56,6 +58,7 @@ class _EditCarScreenState extends State<EditCarScreen> {
   void dispose() {
     _nameController.dispose();
     _seriesController.dispose();
+    _segmentController.dispose();
     _yearController.dispose();
     _purchasePriceController.dispose();
     _sellingPriceController.dispose();
@@ -71,11 +74,13 @@ class _EditCarScreenState extends State<EditCarScreen> {
           _originalCar = car;
           _nameController.text = car.name;
           _seriesController.text = car.series ?? '';
+          _segmentController.text = car.segment ?? '';
           _yearController.text = car.year?.toString() ?? '';
           _purchasePriceController.text = car.purchasePrice?.toString() ?? '';
           _sellingPriceController.text = car.sellingPrice?.toString() ?? '';
           _notesController.text = car.notes ?? '';
           _selectedCondition = car.condition ?? 'Mint';
+          _selectedHuntType = car.huntType;
           _acquiredDate = car.acquiredDate;
           _existingImagePath = car.imagePath;
           _isLoading = false;
@@ -194,25 +199,35 @@ class _EditCarScreenState extends State<EditCarScreen> {
       }
 
       final updatedCar = _originalCar!.copyWith(
-        name: _nameController.text.trim(),
+        name: _nameController.text.trim().toUpperCase(),
         series: _seriesController.text.trim().isNotEmpty
             ? _seriesController.text.trim()
             : null,
+        clearSeries: _seriesController.text.trim().isEmpty,
+        segment: _segmentController.text.trim().isNotEmpty
+            ? _segmentController.text.trim()
+            : null,
+        clearSegment: _segmentController.text.trim().isEmpty,
         year: _yearController.text.trim().isNotEmpty
             ? int.tryParse(_yearController.text.trim())
             : null,
+        clearYear: _yearController.text.trim().isEmpty,
         imagePath: imagePath,
         notes: _notesController.text.trim().isNotEmpty
             ? _notesController.text.trim()
             : null,
+        clearNotes: _notesController.text.trim().isEmpty,
         condition: _selectedCondition,
+        huntType: _selectedHuntType,
         acquiredDate: _acquiredDate,
         purchasePrice: _purchasePriceController.text.trim().isNotEmpty
             ? double.tryParse(_purchasePriceController.text.trim())
             : null,
+        clearPurchasePrice: _purchasePriceController.text.trim().isEmpty,
         sellingPrice: _sellingPriceController.text.trim().isNotEmpty
             ? double.tryParse(_sellingPriceController.text.trim())
             : null,
+        clearSellingPrice: _sellingPriceController.text.trim().isEmpty,
       );
 
       await _carRepository.updateCar(updatedCar);
@@ -441,7 +456,7 @@ class _EditCarScreenState extends State<EditCarScreen> {
                           ],
                         ),
                         AppSpacing.verticalMd,
-                        // Condition Dropdown
+                        // Segment Field
                         SoftCard(
                           padding: AppSpacing.paddingLg,
                           color: AppColors.primary,
@@ -451,31 +466,100 @@ class _EditCarScreenState extends State<EditCarScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Condition',
+                                'Segment',
                                 style: AppTextStyles.titleMedium.copyWith(
                                   color: Colors.white70,
                                 ),
                               ),
                               AppSpacing.verticalSm,
-                              DropdownButtonFormField<String>(
-                                initialValue: _selectedCondition,
-                                dropdownColor: AppColors.tertiary,
+                              TextFormField(
+                                controller: _segmentController,
                                 style: const TextStyle(color: Colors.white),
-                                decoration: _inputDecoration(null),
-                                items: ConditionHelper.conditions.map((condition) {
-                                  return DropdownMenuItem(
-                                    value: condition,
-                                    child: Text(condition),
-                                  );
-                                }).toList(),
-                                onChanged: (value) {
-                                  if (value != null) {
-                                    setState(() => _selectedCondition = value);
-                                  }
-                                },
+                                decoration: _inputDecoration('e.g. HW Flames'),
                               ),
                             ],
                           ),
+                        ),
+                        AppSpacing.verticalMd,
+                        // Condition and Hunt Type Row
+                        Row(
+                          children: [
+                            Expanded(
+                              child: SoftCard(
+                                padding: AppSpacing.paddingLg,
+                                color: AppColors.primary,
+                                elevation: 8,
+                                shadowColor: AppColors.primary.withValues(alpha: 0.5),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Condition',
+                                      style: AppTextStyles.titleMedium.copyWith(
+                                        color: Colors.white70,
+                                      ),
+                                    ),
+                                    AppSpacing.verticalSm,
+                                    DropdownButtonFormField<String>(
+                                      initialValue: _selectedCondition,
+                                      dropdownColor: AppColors.tertiary,
+                                      style: const TextStyle(color: Colors.white),
+                                      decoration: _inputDecoration(null),
+                                      items: ConditionHelper.conditions.map((condition) {
+                                        return DropdownMenuItem(
+                                          value: condition,
+                                          child: Text(condition),
+                                        );
+                                      }).toList(),
+                                      onChanged: (value) {
+                                        if (value != null) {
+                                          setState(() => _selectedCondition = value);
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            AppSpacing.horizontalMd,
+                            Expanded(
+                              child: SoftCard(
+                                padding: AppSpacing.paddingLg,
+                                color: AppColors.primary,
+                                elevation: 8,
+                                shadowColor: AppColors.primary.withValues(alpha: 0.5),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Type',
+                                      style: AppTextStyles.titleMedium.copyWith(
+                                        color: Colors.white70,
+                                      ),
+                                    ),
+                                    AppSpacing.verticalSm,
+                                    DropdownButtonFormField<HuntType>(
+                                      value: _selectedHuntType,
+                                      dropdownColor: AppColors.tertiary,
+                                      style: const TextStyle(color: Colors.white),
+                                      decoration: _inputDecoration(null),
+                                      items: HuntType.values.map((type) {
+                                        return DropdownMenuItem(
+                                          value: type,
+                                          child: Text(_getHuntTypeLabel(type)),
+                                        );
+                                      }).toList(),
+                                      onChanged: (value) {
+                                        if (value != null) {
+                                          setState(() => _selectedHuntType = value);
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         AppSpacing.verticalMd,
                         // Acquired Date
@@ -541,7 +625,7 @@ class _EditCarScreenState extends State<EditCarScreen> {
                                     TextFormField(
                                       controller: _purchasePriceController,
                                       style: const TextStyle(color: Colors.white),
-                                      decoration: _inputDecoration('\$0.00'),
+                                      decoration: _inputDecoration('₱0.00'),
                                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                                       inputFormatters: [
                                         FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
@@ -571,7 +655,7 @@ class _EditCarScreenState extends State<EditCarScreen> {
                                     TextFormField(
                                       controller: _sellingPriceController,
                                       style: const TextStyle(color: Colors.white),
-                                      decoration: _inputDecoration('\$0.00'),
+                                      decoration: _inputDecoration('₱0.00'),
                                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                                       inputFormatters: [
                                         FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
@@ -628,4 +712,15 @@ class _EditCarScreenState extends State<EditCarScreen> {
 
   InputDecoration _inputDecoration(String? hint) =>
       InputDecorationHelper.soft(hint: hint);
+
+  String _getHuntTypeLabel(HuntType type) {
+    switch (type) {
+      case HuntType.normal:
+        return 'Normal';
+      case HuntType.rth:
+        return 'RTH';
+      case HuntType.sth:
+        return 'STH';
+    }
+  }
 }

@@ -39,8 +39,11 @@ class AddCarDialog extends StatefulWidget {
 class _AddCarDialogState extends State<AddCarDialog> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _seriesController = TextEditingController();
+  final _seriesController = TextEditingController(text: 'Mainline');
+  final _segmentController = TextEditingController();
   final _yearController = TextEditingController();
+  final _purchasePriceController = TextEditingController();
+  final _sellingPriceController = TextEditingController();
   final _notesController = TextEditingController();
   final CarRepository _carRepository = sl<CarRepository>();
   final ImageService _imageService = sl<ImageService>();
@@ -55,7 +58,10 @@ class _AddCarDialogState extends State<AddCarDialog> {
   void dispose() {
     _nameController.dispose();
     _seriesController.dispose();
+    _segmentController.dispose();
     _yearController.dispose();
+    _purchasePriceController.dispose();
+    _sellingPriceController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -144,9 +150,12 @@ class _AddCarDialogState extends State<AddCarDialog> {
       }
 
       final car = HotWheelsCar(
-        name: _nameController.text.trim(),
+        name: _nameController.text.trim().toUpperCase(),
         series: _seriesController.text.trim().isNotEmpty
             ? _seriesController.text.trim()
+            : null,
+        segment: _segmentController.text.trim().isNotEmpty
+            ? _segmentController.text.trim()
             : null,
         year: _yearController.text.trim().isNotEmpty
             ? int.tryParse(_yearController.text.trim())
@@ -157,6 +166,12 @@ class _AddCarDialogState extends State<AddCarDialog> {
             : null,
         condition: _selectedCondition,
         acquiredDate: _acquiredDate,
+        purchasePrice: _purchasePriceController.text.trim().isNotEmpty
+            ? double.tryParse(_purchasePriceController.text.trim())
+            : null,
+        sellingPrice: _sellingPriceController.text.trim().isNotEmpty
+            ? double.tryParse(_sellingPriceController.text.trim())
+            : null,
         isFavorite: widget.autoFavorite,
       );
 
@@ -254,11 +269,17 @@ class _AddCarDialogState extends State<AddCarDialog> {
                       // Series and Year Row
                       _buildSeriesYearRow(),
                       AppSpacing.verticalMd,
+                      // Segment Field
+                      _buildSegmentField(),
+                      AppSpacing.verticalMd,
                       // Condition Dropdown
                       _buildConditionDropdown(),
                       AppSpacing.verticalMd,
                       // Acquired Date
                       _buildAcquiredDate(),
+                      AppSpacing.verticalMd,
+                      // Price Row
+                      _buildPriceRow(),
                       AppSpacing.verticalMd,
                       // Notes
                       _buildNotesField(),
@@ -440,6 +461,33 @@ class _AddCarDialogState extends State<AddCarDialog> {
     );
   }
 
+  Widget _buildSegmentField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      padding: EdgeInsets.all(16.w),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Segment',
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: Colors.white70,
+            ),
+          ),
+          AppSpacing.verticalXs,
+          TextFormField(
+            controller: _segmentController,
+            style: TextStyle(color: Colors.white, fontSize: 14.sp),
+            decoration: _inputDecoration('e.g. HW Flames'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildConditionDropdown() {
     return Container(
       decoration: BoxDecoration(
@@ -519,6 +567,74 @@ class _AddCarDialogState extends State<AddCarDialog> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildPriceRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            padding: EdgeInsets.all(16.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Purchase Price',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: Colors.white70,
+                  ),
+                ),
+                AppSpacing.verticalXs,
+                TextFormField(
+                  controller: _purchasePriceController,
+                  style: TextStyle(color: Colors.white, fontSize: 14.sp),
+                  decoration: _inputDecoration('₱0.00'),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        AppSpacing.horizontalSm,
+        Expanded(
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            padding: EdgeInsets.all(16.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Selling Price',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: Colors.white70,
+                  ),
+                ),
+                AppSpacing.verticalXs,
+                TextFormField(
+                  controller: _sellingPriceController,
+                  style: TextStyle(color: Colors.white, fontSize: 14.sp),
+                  decoration: _inputDecoration('₱0.00'),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
