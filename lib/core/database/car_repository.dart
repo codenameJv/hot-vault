@@ -102,6 +102,21 @@ class CarRepository {
     return maps.map((map) => HotWheelsCar.fromMap(map)).toList();
   }
 
+  // READ - Get duplicate counts for all car names
+  Future<Map<String, int>> getDuplicateCounts() async {
+    final db = await _databaseHelper.database;
+    final maps = await db.rawQuery('''
+      SELECT name, COUNT(*) as count
+      FROM ${DatabaseHelper.tableCars}
+      GROUP BY name
+      HAVING COUNT(*) > 1
+    ''');
+
+    return {
+      for (final map in maps) map['name'] as String: map['count'] as int,
+    };
+  }
+
   // READ - Get cars by series
   Future<List<HotWheelsCar>> getCarsBySeries(String series) async {
     final db = await _databaseHelper.database;

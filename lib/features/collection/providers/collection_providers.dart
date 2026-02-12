@@ -22,11 +22,13 @@ class CollectionState {
   final String? selectedCondition;
   final int? selectedYear;
   final HuntType? selectedHuntType;
+  final bool showDuplicatesOnly;
   final List<String> availableSeries;
   final List<String> availableSegments;
   final List<String> availableConditions;
   final List<int> availableYears;
   final List<HuntType> availableHuntTypes;
+  final Map<String, int> duplicateCounts;
   final String? error;
 
   const CollectionState({
@@ -45,11 +47,13 @@ class CollectionState {
     this.selectedCondition,
     this.selectedYear,
     this.selectedHuntType,
+    this.showDuplicatesOnly = false,
     this.availableSeries = const [],
     this.availableSegments = const [],
     this.availableConditions = const [],
     this.availableYears = const [],
     this.availableHuntTypes = const [],
+    this.duplicateCounts = const {},
     this.error,
   });
 
@@ -60,8 +64,11 @@ class CollectionState {
     if (selectedCondition != null) count++;
     if (selectedYear != null) count++;
     if (selectedHuntType != null) count++;
+    if (showDuplicatesOnly) count++;
     return count;
   }
+
+  int get duplicateCarCount => duplicateCounts.values.fold(0, (sum, count) => sum + count);
 
   CollectionState copyWith({
     List<HotWheelsCar>? cars,
@@ -79,11 +86,13 @@ class CollectionState {
     String? selectedCondition,
     int? selectedYear,
     HuntType? selectedHuntType,
+    bool? showDuplicatesOnly,
     List<String>? availableSeries,
     List<String>? availableSegments,
     List<String>? availableConditions,
     List<int>? availableYears,
     List<HuntType>? availableHuntTypes,
+    Map<String, int>? duplicateCounts,
     String? error,
     bool clearSeriesFilter = false,
     bool clearSegmentFilter = false,
@@ -107,11 +116,13 @@ class CollectionState {
       selectedCondition: clearConditionFilter ? null : (selectedCondition ?? this.selectedCondition),
       selectedYear: clearYearFilter ? null : (selectedYear ?? this.selectedYear),
       selectedHuntType: clearHuntTypeFilter ? null : (selectedHuntType ?? this.selectedHuntType),
+      showDuplicatesOnly: showDuplicatesOnly ?? this.showDuplicatesOnly,
       availableSeries: availableSeries ?? this.availableSeries,
       availableSegments: availableSegments ?? this.availableSegments,
       availableConditions: availableConditions ?? this.availableConditions,
       availableYears: availableYears ?? this.availableYears,
       availableHuntTypes: availableHuntTypes ?? this.availableHuntTypes,
+      duplicateCounts: duplicateCounts ?? this.duplicateCounts,
       error: error,
     );
   }
@@ -172,6 +183,9 @@ class CollectionNotifier extends StateNotifier<CollectionState> {
         huntTypeSet.add(car.huntType);
       }
 
+      // Load duplicate counts
+      final duplicateCounts = await _carRepository.getDuplicateCounts();
+
       state = state.copyWith(
         cars: cars,
         availableSeries: seriesSet.toList()..sort(),
@@ -179,6 +193,7 @@ class CollectionNotifier extends StateNotifier<CollectionState> {
         availableConditions: conditionSet.toList()..sort(),
         availableYears: yearSet.toList()..sort((a, b) => b.compareTo(a)),
         availableHuntTypes: huntTypeSet.toList()..sort((a, b) => a.index.compareTo(b.index)),
+        duplicateCounts: duplicateCounts,
         isLoading: false,
         hasReachedEnd: cars.length < state.pageSize,
       );
@@ -261,6 +276,11 @@ class CollectionNotifier extends StateNotifier<CollectionState> {
         return false;
       }
 
+      // Duplicates filter
+      if (state.showDuplicatesOnly && !state.duplicateCounts.containsKey(car.name)) {
+        return false;
+      }
+
       return true;
     }).toList();
 
@@ -322,6 +342,11 @@ class CollectionNotifier extends StateNotifier<CollectionState> {
     _applyFilters();
   }
 
+  void setDuplicatesFilter(bool showDuplicatesOnly) {
+    state = state.copyWith(showDuplicatesOnly: showDuplicatesOnly);
+    _applyFilters();
+  }
+
   void clearAllFilters() {
     state = state.copyWith(
       clearSeriesFilter: true,
@@ -329,6 +354,7 @@ class CollectionNotifier extends StateNotifier<CollectionState> {
       clearConditionFilter: true,
       clearYearFilter: true,
       clearHuntTypeFilter: true,
+      showDuplicatesOnly: false,
     );
     _applyFilters();
   }

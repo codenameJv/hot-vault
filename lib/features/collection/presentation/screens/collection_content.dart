@@ -127,6 +127,42 @@ class _CollectionContentState extends ConsumerState<CollectionContent> {
                     child: ListView(
                       controller: scrollController,
                       children: [
+                        // Duplicates filter
+                        if (state.duplicateCounts.isNotEmpty) ...[
+                          _buildFilterSection(
+                            title: 'Duplicates',
+                            icon: Icons.copy_all_rounded,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                FilterChip(
+                                  label: Text(
+                                    'Show duplicates only (${state.duplicateCounts.length} cars with copies)',
+                                  ),
+                                  selected: state.showDuplicatesOnly,
+                                  onSelected: (selected) {
+                                    ref.read(collectionProvider.notifier)
+                                        .setDuplicatesFilter(selected);
+                                  },
+                                  backgroundColor: AppColors.primary,
+                                  selectedColor: AppColors.tertiary,
+                                  labelStyle: TextStyle(
+                                    color: state.showDuplicatesOnly
+                                        ? Colors.white
+                                        : Colors.white70,
+                                  ),
+                                  checkmarkColor: Colors.white,
+                                  side: BorderSide(
+                                    color: state.showDuplicatesOnly
+                                        ? AppColors.tertiary
+                                        : Colors.white24,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          AppSpacing.verticalLg,
+                        ],
                         if (state.availableSeries.isNotEmpty) ...[
                           _buildFilterSection(
                             title: 'Series',
@@ -570,6 +606,7 @@ class _CollectionContentState extends ConsumerState<CollectionContent> {
                       isLoading: state.isLoading,
                       isLoadingMore: state.isLoadingMore,
                       hasReachedEnd: state.hasReachedEnd,
+                      duplicateCounts: state.duplicateCounts,
                       onLoadMore: () {
                         ref.read(collectionProvider.notifier).loadMoreCars();
                       },

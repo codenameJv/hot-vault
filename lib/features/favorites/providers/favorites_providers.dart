@@ -26,6 +26,7 @@ class FavoritesState {
   final List<String> availableConditions;
   final List<int> availableYears;
   final List<HuntType> availableHuntTypes;
+  final Map<String, int> duplicateCounts;
   final String? error;
 
   const FavoritesState({
@@ -49,6 +50,7 @@ class FavoritesState {
     this.availableConditions = const [],
     this.availableYears = const [],
     this.availableHuntTypes = const [],
+    this.duplicateCounts = const {},
     this.error,
   });
 
@@ -83,6 +85,7 @@ class FavoritesState {
     List<String>? availableConditions,
     List<int>? availableYears,
     List<HuntType>? availableHuntTypes,
+    Map<String, int>? duplicateCounts,
     String? error,
     bool clearSeriesFilter = false,
     bool clearSegmentFilter = false,
@@ -111,6 +114,7 @@ class FavoritesState {
       availableConditions: availableConditions ?? this.availableConditions,
       availableYears: availableYears ?? this.availableYears,
       availableHuntTypes: availableHuntTypes ?? this.availableHuntTypes,
+      duplicateCounts: duplicateCounts ?? this.duplicateCounts,
       error: error,
     );
   }
@@ -169,6 +173,9 @@ class FavoritesNotifier extends StateNotifier<FavoritesState> {
         huntTypeSet.add(car.huntType);
       }
 
+      // Load duplicate counts from all cars (not just favorites)
+      final duplicateCounts = await _carRepository.getDuplicateCounts();
+
       state = state.copyWith(
         favoriteCars: cars,
         availableSeries: seriesSet.toList()..sort(),
@@ -176,6 +183,7 @@ class FavoritesNotifier extends StateNotifier<FavoritesState> {
         availableConditions: conditionSet.toList()..sort(),
         availableYears: yearSet.toList()..sort((a, b) => b.compareTo(a)),
         availableHuntTypes: huntTypeSet.toList()..sort((a, b) => a.index.compareTo(b.index)),
+        duplicateCounts: duplicateCounts,
         isLoading: false,
         hasReachedEnd: cars.length < state.pageSize,
       );

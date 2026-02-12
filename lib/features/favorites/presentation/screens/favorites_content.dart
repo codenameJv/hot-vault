@@ -507,6 +507,7 @@ class _FavoritesContentState extends ConsumerState<FavoritesContent> {
                           isLoadingMore: state.isLoadingMore,
                           hasReachedEnd: state.hasReachedEnd,
                           showDeleteButton: false,
+                          duplicateCounts: state.duplicateCounts,
                           onLoadMore: () {
                             ref.read(favoritesProvider.notifier).loadMoreFavorites();
                           },

@@ -16,6 +16,7 @@ class CarCard extends StatelessWidget {
   final VoidCallback? onFavoriteToggle;
   final VoidCallback? onDelete;
   final bool showDeleteButton;
+  final int? duplicateCount;
 
   const CarCard({
     super.key,
@@ -24,6 +25,7 @@ class CarCard extends StatelessWidget {
     this.onFavoriteToggle,
     this.onDelete,
     this.showDeleteButton = true,
+    this.duplicateCount,
   });
 
   @override
@@ -40,23 +42,58 @@ class CarCard extends StatelessWidget {
           children: [
             // Image
             Expanded(
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  borderRadius: AppSpacing.borderRadiusSm,
-                ),
-                child: car.imagePath != null
-                    ? ClipRRect(
-                        borderRadius: AppSpacing.borderRadiusSm,
-                        child: Image.file(
-                          File(car.imagePath!),
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              _buildPlaceholder(),
+              child: Stack(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      borderRadius: AppSpacing.borderRadiusSm,
+                    ),
+                    child: car.imagePath != null
+                        ? ClipRRect(
+                            borderRadius: AppSpacing.borderRadiusSm,
+                            child: Image.file(
+                              File(car.imagePath!),
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  _buildPlaceholder(),
+                            ),
+                          )
+                        : _buildPlaceholder(),
+                  ),
+                  // Duplicate count badge
+                  if (duplicateCount != null && duplicateCount! > 1)
+                    Positioned(
+                      top: 6.h,
+                      right: 6.w,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 6.w,
+                          vertical: 2.h,
                         ),
-                      )
-                    : _buildPlaceholder(),
+                        decoration: BoxDecoration(
+                          color: AppColors.tertiary,
+                          borderRadius: BorderRadius.circular(10.r),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.3),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          '×$duplicateCount',
+                          style: AppTextStyles.labelSmall.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 10.sp,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
             SizedBox(height: 8.h),

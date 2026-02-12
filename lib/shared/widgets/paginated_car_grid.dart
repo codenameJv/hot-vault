@@ -17,6 +17,7 @@ class PaginatedCarGrid extends StatefulWidget {
   final void Function(HotWheelsCar car)? onDelete;
   final bool showDeleteButton;
   final Widget? emptyWidget;
+  final Map<String, int>? duplicateCounts;
 
   const PaginatedCarGrid({
     super.key,
@@ -31,6 +32,7 @@ class PaginatedCarGrid extends StatefulWidget {
     this.onDelete,
     this.showDeleteButton = true,
     this.emptyWidget,
+    this.duplicateCounts,
   });
 
   @override
@@ -93,6 +95,7 @@ class _PaginatedCarGridState extends State<PaginatedCarGrid> {
         return CarCard(
           car: car,
           showDeleteButton: widget.showDeleteButton,
+          duplicateCount: widget.duplicateCounts?[car.name],
           onTap: widget.onCarTap != null ? () => widget.onCarTap!(car) : null,
           onFavoriteToggle: widget.onFavoriteToggle != null
               ? () => widget.onFavoriteToggle!(car)
