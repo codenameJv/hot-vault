@@ -29,6 +29,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
   final CarRepository _carRepository = sl<CarRepository>();
   final ImageService _imageService = sl<ImageService>();
   HotWheelsCar? _car;
+  List<HotWheelsCar> _otherCopies = [];
   bool _isLoading = true;
   bool _hasChanges = false;
 
@@ -42,8 +43,17 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
     setState(() => _isLoading = true);
     try {
       final car = await _carRepository.getCarById(widget.carId);
+      List<HotWheelsCar> otherCopies = [];
+
+      // Load other copies if car exists
+      if (car != null) {
+        final allCopies = await _carRepository.findCarsByName(car.name);
+        otherCopies = allCopies.where((c) => c.id != car.id).toList();
+      }
+
       setState(() {
         _car = car;
+        _otherCopies = otherCopies;
         _isLoading = false;
       });
     } catch (e) {
@@ -248,6 +258,11 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
                                   if (_car!.notes != null && _car!.notes!.isNotEmpty) ...[
                                     AppSpacing.verticalMd,
                                     _buildNotesSection(),
+                                  ],
+                                  // Other Copies Section
+                                  if (_otherCopies.isNotEmpty) ...[
+                                    AppSpacing.verticalMd,
+                                    _buildOtherCopiesSection(),
                                   ],
                                   AppSpacing.verticalXl,
                                 ],
@@ -716,4 +731,78 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
     );
   }
 
+  Widget _buildOtherCopiesSection() {
+    return SoftCard(
+      padding: AppSpacing.paddingLg,
+      color: AppColors.primary,
+      elevation: 6,
+      shadowColor: AppColors.tertiary.withValues(alpha: 0.3),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.copy_all_rounded,
+                color: AppColors.tertiary,
+                size: 20.sp,
+              ),
+              AppSpacing.horizontalSm,
+              Text(
+                'You have ${_otherCopies.length + 1} copies of this car',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: Colors.white70,
+                ),
+              ),
+            ],
+          ),
+          AppSpacing.verticalMd,
+          Wrap(
+            spacing: 8.w,
+            runSpacing: 8.h,
+            children: _otherCopies.map((copy) {
+              return GestureDetector(
+                onTap: () {
+                  // Replace current route to avoid nesting
+                  context.go('${Routes.carDetail}/${copy.id}');
+                },
+                child: Container(
+                  width: 60.w,
+                  height: 60.w,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8.r),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: copy.imagePath != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(7.r),
+                          child: Image.file(
+                            File(copy.imagePath!),
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                _buildCopyPlaceholder(),
+                          ),
+                        )
+                      : _buildCopyPlaceholder(),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCopyPlaceholder() {
+    return Center(
+      child: Icon(
+        Icons.directions_car_rounded,
+        color: Colors.white.withValues(alpha: 0.3),
+        size: 24.sp,
+      ),
+    );
+  }
 }
