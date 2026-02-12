@@ -20,7 +20,7 @@ class TestDatabaseHelper {
     return await databaseFactory.openDatabase(
       inMemoryDatabasePath,
       options: OpenDatabaseOptions(
-        version: 3,
+        version: 5,
         onCreate: _onCreate,
       ),
     );
@@ -32,6 +32,7 @@ class TestDatabaseHelper {
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         series TEXT,
+        segment TEXT,
         year INTEGER,
         imagePath TEXT,
         notes TEXT,
@@ -39,6 +40,7 @@ class TestDatabaseHelper {
         acquiredDate INTEGER,
         purchasePrice REAL,
         sellingPrice REAL,
+        huntType TEXT DEFAULT 'normal',
         isFavorite INTEGER NOT NULL DEFAULT 0,
         createdAt INTEGER NOT NULL,
         updatedAt INTEGER NOT NULL

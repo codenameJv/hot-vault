@@ -130,6 +130,22 @@ class _AddCarScreenState extends State<AddCarScreen> {
   Future<void> _saveCar() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final carName = _nameController.text.trim().toUpperCase();
+
+    // Check for duplicates
+    final existingCars = await _carRepository.findCarsByName(carName);
+    if (existingCars.isNotEmpty && mounted) {
+      final action = await DuplicateCarSheet.show(
+        context,
+        existingCars: existingCars,
+        newCarName: carName,
+      );
+
+      if (action != DuplicateAction.addAnyway) {
+        return;
+      }
+    }
+
     setState(() => _isSaving = true);
 
     try {
@@ -139,7 +155,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
       }
 
       final car = HotWheelsCar(
-        name: _nameController.text.trim().toUpperCase(),
+        name: carName,
         series: _seriesController.text.trim().isNotEmpty
             ? _seriesController.text.trim()
             : null,

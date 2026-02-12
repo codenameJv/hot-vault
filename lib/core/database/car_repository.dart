@@ -88,6 +88,20 @@ class CarRepository {
     return maps.map((map) => HotWheelsCar.fromMap(map)).toList();
   }
 
+  // READ - Find cars with exact name match (for duplicate detection)
+  Future<List<HotWheelsCar>> findCarsByName(String name) async {
+    final db = await _databaseHelper.database;
+    final normalizedName = name.trim().toUpperCase();
+    final maps = await db.query(
+      DatabaseHelper.tableCars,
+      where: 'name = ?',
+      whereArgs: [normalizedName],
+      orderBy: 'createdAt DESC',
+    );
+
+    return maps.map((map) => HotWheelsCar.fromMap(map)).toList();
+  }
+
   // READ - Get cars by series
   Future<List<HotWheelsCar>> getCarsBySeries(String series) async {
     final db = await _databaseHelper.database;

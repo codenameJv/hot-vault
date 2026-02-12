@@ -50,6 +50,7 @@ class _AddCarDialogState extends State<AddCarDialog> {
   final ImagePicker _imagePicker = ImagePicker();
 
   String _selectedCondition = 'Mint';
+  HuntType _selectedHuntType = HuntType.normal;
   DateTime? _acquiredDate;
   bool _isSaving = false;
   File? _selectedImage;
@@ -141,6 +142,22 @@ class _AddCarDialogState extends State<AddCarDialog> {
   Future<void> _saveCar() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final carName = _nameController.text.trim().toUpperCase();
+
+    // Check for duplicates
+    final existingCars = await _carRepository.findCarsByName(carName);
+    if (existingCars.isNotEmpty && mounted) {
+      final action = await DuplicateCarSheet.show(
+        context,
+        existingCars: existingCars,
+        newCarName: carName,
+      );
+
+      if (action != DuplicateAction.addAnyway) {
+        return;
+      }
+    }
+
     setState(() => _isSaving = true);
 
     try {
@@ -150,7 +167,7 @@ class _AddCarDialogState extends State<AddCarDialog> {
       }
 
       final car = HotWheelsCar(
-        name: _nameController.text.trim().toUpperCase(),
+        name: carName,
         series: _seriesController.text.trim().isNotEmpty
             ? _seriesController.text.trim()
             : null,
@@ -165,6 +182,7 @@ class _AddCarDialogState extends State<AddCarDialog> {
             ? _notesController.text.trim()
             : null,
         condition: _selectedCondition,
+        huntType: _selectedHuntType,
         acquiredDate: _acquiredDate,
         purchasePrice: _purchasePriceController.text.trim().isNotEmpty
             ? double.tryParse(_purchasePriceController.text.trim())
@@ -274,6 +292,9 @@ class _AddCarDialogState extends State<AddCarDialog> {
                       AppSpacing.verticalMd,
                       // Condition Dropdown
                       _buildConditionDropdown(),
+                      AppSpacing.verticalMd,
+                      // Hunt Type Dropdown
+                      _buildHuntTypeDropdown(),
                       AppSpacing.verticalMd,
                       // Acquired Date
                       _buildAcquiredDate(),
@@ -525,6 +546,56 @@ class _AddCarDialogState extends State<AddCarDialog> {
         ],
       ),
     );
+  }
+
+  Widget _buildHuntTypeDropdown() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      padding: EdgeInsets.all(16.w),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Type',
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: Colors.white70,
+            ),
+          ),
+          AppSpacing.verticalXs,
+          DropdownButtonFormField<HuntType>(
+            initialValue: _selectedHuntType,
+            dropdownColor: AppColors.tertiary,
+            style: TextStyle(color: Colors.white, fontSize: 14.sp),
+            decoration: _inputDecoration(null),
+            items: HuntType.values.map((type) {
+              return DropdownMenuItem(
+                value: type,
+                child: Text(_getHuntTypeLabel(type)),
+              );
+            }).toList(),
+            onChanged: (value) {
+              if (value != null) {
+                setState(() => _selectedHuntType = value);
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getHuntTypeLabel(HuntType type) {
+    switch (type) {
+      case HuntType.normal:
+        return 'Normal';
+      case HuntType.rth:
+        return 'Regular Treasure Hunt (RTH)';
+      case HuntType.sth:
+        return 'Super Treasure Hunt (STH)';
+    }
   }
 
   Widget _buildAcquiredDate() {

@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:hot_vault/core/models/hot_wheels_car.dart';
 import 'package:hot_vault/core/database/car_repository.dart';
